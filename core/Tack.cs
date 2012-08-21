@@ -73,7 +73,7 @@ namespace Tack
 		public static void Main (string[] args)
 		{
 			var tack = new Tack ();
-			var cmd = args.Length > 0 ? (args [0]).ToLower () : "run";
+			var cmd = args.Length > 0 ? (args [0]).ToLower () : "tack";
 			var parameters = new List<string> (args);
 			if (parameters.Count > 0) {
 				parameters.RemoveAt (0);
