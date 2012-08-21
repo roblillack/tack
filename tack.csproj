@@ -69,6 +69,8 @@
     <Compile Include="core\Tack.cs" />
     <Compile Include="tests\TackTest.cs" />
     <Compile Include="plugins\base\Tack.cs" />
+    <Compile Include="core\Tacker.cs" />
+    <Compile Include="core\Page.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
