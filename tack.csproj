@@ -55,6 +55,12 @@
     <Reference Include="Nustache.Core">
       <HintPath>ext\nustache\Nustache.Core\bin\Release\Nustache.Core.dll</HintPath>
     </Reference>
+    <Reference Include="YamlDotNet.Core">
+      <HintPath>lib\yamldotnet\YamlDotNet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="YamlDotNet.RepresentationModel">
+      <HintPath>lib\yamldotnet\YamlDotNet.RepresentationModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
