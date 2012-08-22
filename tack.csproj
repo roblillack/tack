@@ -66,13 +66,13 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="plugins\base\Help.cs" />
     <Compile Include="plugins\Command.cs" />
-    <Compile Include="core\Tack.cs" />
     <Compile Include="tests\TackTest.cs" />
     <Compile Include="core\Tacker.cs" />
     <Compile Include="core\Page.cs" />
     <Compile Include="core\DictUtils.cs" />
     <Compile Include="plugins\base\Serve.cs" />
     <Compile Include="plugins\base\TackCmd.cs" />
+    <Compile Include="core\TackApp.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

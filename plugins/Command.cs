@@ -10,7 +10,7 @@ namespace Tack.Plugins
 		public abstract void Execute(IList<string> parameters);
 
 		public virtual bool IsVisible { get { return true; } }
-		public Tack Application { set; get; }
+		public TackApp Application { set; get; }
 
 		public class Error : Exception
 		{

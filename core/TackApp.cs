@@ -8,7 +8,7 @@ using Tack.Plugins;
 
 namespace Tack
 {
-	public class Tack
+	public class TackApp
 	{
 		List<Command> commands = new List<Command> ();
 		
@@ -72,7 +72,7 @@ namespace Tack
 
 		public static void Main (string[] args)
 		{
-			var tack = new Tack ();
+			var tack = new TackApp ();
 			var cmd = args.Length > 0 ? (args [0]).ToLower () : "tack";
 			var parameters = new List<string> (args);
 			if (parameters.Count > 0) {
