@@ -12,9 +12,8 @@ namespace Tack
 		public string Permalink { get; protected set; }
 		public Tacker Tacker { get; protected set; }
 		public ISet<string> Assets { get; protected set; }
-
-		string template;
-		IDictionary<string, object> variables;
+		public IDictionary<string, object> Variables { get; protected set; }
+		public string Template { get; protected set; }
 
 		public Page (Tacker tacker, string realpath)
 		{
@@ -22,28 +21,15 @@ namespace Tack
 			DiskPath = realpath;
 			Permalink = realpath.Replace (Tacker.ContentDir, "");
 			Name = Path.GetFileName (realpath);
-		}
 
-		public string Template {
-			get {
-				if (template != null) {
-					return template;
-				}
-				LoadVariables ();
-				if (template == null) {
-					throw new FileNotFoundException ("No Template found for page " + Permalink);
-				}
-				return template;
+			Init ();
+
+			if (Template == null) {
+				throw new FileNotFoundException ("No Template found for page " + Permalink);
 			}
 		}
 
-		public IDictionary<string, object> Variables {
-			get {
-				return variables ?? (variables = LoadVariables ());
-			}
-		}
-
-		private IDictionary<string, object> LoadVariables ()
+		private void Init ()
 		{
 			var metadata = new Dictionary<string, object> ();
 			var assets = new HashSet<string> ();
@@ -51,7 +37,7 @@ namespace Tack
 			foreach (var i in Directory.GetFiles (DiskPath, "*")) {
 				var map = Tacker.ProcessMetadata (i);
 				if (map != null) {
-					template = template ?? Path.GetFileNameWithoutExtension (i);
+					Template = Template ?? Path.GetFileNameWithoutExtension (i);
 					metadata.AddAll (map);
 					continue;
 				}
@@ -59,9 +45,8 @@ namespace Tack
 				assets.Add (i.Replace (DiskPath, ""));
 			}
 
-			this.Assets = assets;
-
-			return metadata;
+			Assets = assets;
+			Variables = metadata;
 		}
 
 		public void Generate ()
@@ -72,10 +57,6 @@ namespace Tack
 			using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
 				Tacker.FindTemplate (Template).Render (data, writer, Tacker.FindTemplate);
 			}
-
-			/*Nustache.Core.Render.FileToFile (Path.Combine (Tacker.TemplateDir, Template + ".mustache"),
-			                                 ,
-			                                 Path.Combine (Tacker.TargetDir + Permalink, "index.html"));*/
 		}
 	}
 }
