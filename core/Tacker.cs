@@ -17,6 +17,8 @@ namespace Tack
 		public string ContentDir { get { return Path.Combine (BaseDir, "content"); } }
 		public string TemplateDir { get { return Path.Combine (BaseDir, "templates"); } }
 		public string TargetDir { get { return Path.Combine (BaseDir, "output"); } }
+		public string AssetDir { get { return Path.Combine (BaseDir, "public"); } }
+		public IDictionary<string, object> Metadata { get; protected set; }
 		public LogFn Logger { get; set; } 
 
 		public Tacker (string dir)
@@ -35,6 +37,8 @@ namespace Tack
 
 		public void Tack ()
 		{
+			LoadMetadata ();
+
 			var pages = FindAllPages ();
 			Log ("Tacking up {0}", BaseDir);
 			Log ("{0} Templates found.", FindAllTemplates ().Count);
@@ -42,12 +46,13 @@ namespace Tack
 
 			foreach (var page in pages) {
 				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
-				Log ("  Variables: {0}", String.Join (", ", page.Variables.Keys));
-				Log ("  Assets: {0}", String.Join (", ", page.Assets));
-				//foreach (var entry in page.GetVariables ()) {
-					//Log ("{0} => {1}", entry.Key, entry.Value);
-				//}
 				page.Generate ();
+			}
+
+			foreach (var i in FindAllAssets ()) {
+				var dest = i.Replace (AssetDir, TargetDir);
+				Directory.CreateDirectory (Path.GetDirectoryName (dest));
+				File.Copy (i, dest);
 			}
 		}
 
@@ -95,6 +100,22 @@ namespace Tack
 			}
 		}
 
+		IEnumerable<string> FindAllAssets ()
+		{
+			foreach (var dir in Directory.EnumerateDirectories (AssetDir, "*", SearchOption.AllDirectories)) {
+				// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
+				string[] files;
+				try {
+					files = Directory.GetFiles (dir, "*");
+				} catch (UnauthorizedAccessException) {
+					continue;
+				}
+				foreach (var i in files) {
+					yield return i;
+				}
+			}
+		}
+
 		public IDictionary<string, object> ProcessMetadata (string file)
 		{
 			foreach (var ext in METADATA_LANGS) {
@@ -120,6 +141,18 @@ namespace Tack
 
 			// Not a known meta-data format
 			return null;
+		}
+
+		private void LoadMetadata ()
+		{
+			var metadata = new Dictionary<string, object> ();
+			foreach (var file in Directory.GetFiles (BaseDir, "*")) {
+				var map = ProcessMetadata (file);
+				if (map != null) {
+					metadata.AddAll (map);
+				}
+			}
+			Metadata = metadata;
 		}
 	}
 }

@@ -52,9 +52,7 @@ namespace Tack
 				var map = Tacker.ProcessMetadata (i);
 				if (map != null) {
 					template = template ?? Path.GetFileNameWithoutExtension (i);
-					foreach (var entry in map) {
-						metadata [entry.Key] = entry.Value;
-					}
+					metadata.AddAll (map);
 					continue;
 				}
 
@@ -70,7 +68,7 @@ namespace Tack
 		{
 			Directory.CreateDirectory (Tacker.TargetDir + Permalink);
 			Nustache.Core.Render.FileToFile (Path.Combine (Tacker.TemplateDir, Template + ".mustache"),
-			                                 Variables,
+			                                 DictUtils.Combine (Tacker.Metadata, Variables),
 			                                 Path.Combine (Tacker.TargetDir + Permalink, "index.html"));
 		}
 	}

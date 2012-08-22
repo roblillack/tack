@@ -71,6 +71,7 @@
     <Compile Include="plugins\base\Tack.cs" />
     <Compile Include="core\Tacker.cs" />
     <Compile Include="core\Page.cs" />
+    <Compile Include="core\DictUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
