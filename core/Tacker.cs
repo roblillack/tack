@@ -20,11 +20,18 @@ namespace Tack
 		public string TargetDir { get { return Path.Combine (BaseDir, "output"); } }
 		public string AssetDir { get { return Path.Combine (BaseDir, "public"); } }
 		public IDictionary<string, object> Metadata { get; protected set; }
-		public LogFn Logger { get; set; } 
+		public LogFn Logger { get; set; }
+		public ISet<Page> Pages { get; protected set; }
 
 		public Tacker (string dir)
 		{
 			BaseDir = dir;
+			Metadata = LoadMetadata ();
+			Pages = FindAllPages ();
+
+			foreach (var i in Pages) {
+				i.Init ();
+			}
 		}
 
 		protected void Log (string format, params object[] args)
@@ -38,14 +45,11 @@ namespace Tack
 
 		public void Tack ()
 		{
-			LoadMetadata ();
-
-			var pages = FindAllPages ();
 			Log ("Tacking up {0}", BaseDir);
 			Log ("{0} Templates found.", FindAllTemplates ().Count);
-			Log ("{0} Pages found.", pages.Count);
+			Log ("{0} Pages found.", Pages.Count);
 
-			foreach (var page in pages) {
+			foreach (var page in Pages) {
 				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
 				page.Generate ();
 			}
@@ -163,7 +167,7 @@ namespace Tack
 			return null;
 		}
 
-		private void LoadMetadata ()
+		private IDictionary<string, object> LoadMetadata ()
 		{
 			var metadata = new Dictionary<string, object> ();
 			foreach (var file in Directory.GetFiles (BaseDir, "*")) {
@@ -172,7 +176,7 @@ namespace Tack
 					metadata.AddAll (map);
 				}
 			}
-			Metadata = metadata;
+			return metadata;
 		}
 	}
 }

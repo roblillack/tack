@@ -73,6 +73,8 @@
     <Compile Include="plugins\base\Serve.cs" />
     <Compile Include="plugins\base\TackCmd.cs" />
     <Compile Include="core\TackApp.cs" />
+    <Compile Include="core\DataProvider.cs" />
+    <Compile Include="core\DataProviderWrapper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
