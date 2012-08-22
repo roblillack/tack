@@ -11,6 +11,7 @@ namespace Tack
 		public string DiskPath { get; protected set; }
 		public string Permalink { get; protected set; }
 		public Tacker Tacker { get; protected set; }
+		public ISet<string> Assets { get; protected set; }
 
 		string template;
 		IDictionary<string, object> variables;
@@ -44,24 +45,33 @@ namespace Tack
 
 		private IDictionary<string, object> LoadVariables ()
 		{
-			var map = new Dictionary<string, object> ();
+			var metadata = new Dictionary<string, object> ();
+			var assets = new HashSet<string> ();
 
-			foreach (var i in Directory.GetFiles (DiskPath, "*.yml")) {
-				template = template ?? Path.GetFileNameWithoutExtension (i);
-				var stream = new YamlStream ();
-				stream.Load (new StreamReader (i));
-
-				foreach (var doc in stream.Documents) {
-					if (doc.RootNode is YamlMappingNode) {
-						var seq = doc.RootNode as YamlMappingNode;
-						foreach (var node in seq.Children) {
-							map.Add (node.Key.ToString (), node.Value);
-						}
+			foreach (var i in Directory.GetFiles (DiskPath, "*")) {
+				var map = Tacker.ProcessMetadata (i);
+				if (map != null) {
+					template = template ?? Path.GetFileNameWithoutExtension (i);
+					foreach (var entry in map) {
+						metadata [entry.Key] = entry.Value;
 					}
+					continue;
 				}
+
+				assets.Add (i.Replace (DiskPath, ""));
 			}
 
-			return map;
+			this.Assets = assets;
+
+			return metadata;
+		}
+
+		public void Generate ()
+		{
+			Directory.CreateDirectory (Tacker.TargetDir + Permalink);
+			Nustache.Core.Render.FileToFile (Path.Combine (Tacker.TemplateDir, Template + ".mustache"),
+			                                 Variables,
+			                                 Path.Combine (Tacker.TargetDir + Permalink, "index.html"));
 		}
 	}
 }

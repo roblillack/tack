@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using YamlDotNet.RepresentationModel;
 
 namespace Tack
 {
 	public class Tacker
 	{
-		const string CONTENT_DIRECTORY = "content";
-		const string TEMPLATE_DIRECTORY = "templates";
 		static readonly string[] TEMPLATE_LANGS = { "mustache" };
 		static readonly string[] METADATA_LANGS = { "yml" };
+		static readonly string[] MARKUP_LANGS = { "mkd" };
 
 		public delegate void LogFn (string format, params object[] args);
 
 		public string BaseDir { get; protected set; }
-		public string ContentDir { get { return Path.Combine (BaseDir, CONTENT_DIRECTORY); } }
-		public string TemplateDir { get { return Path.Combine (BaseDir, TEMPLATE_DIRECTORY); } }
+		public string ContentDir { get { return Path.Combine (BaseDir, "content"); } }
+		public string TemplateDir { get { return Path.Combine (BaseDir, "templates"); } }
+		public string TargetDir { get { return Path.Combine (BaseDir, "output"); } }
 		public LogFn Logger { get; set; } 
 
 		public Tacker (string dir)
@@ -41,10 +42,12 @@ namespace Tack
 
 			foreach (var page in pages) {
 				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
-				Log ("  {0}", String.Join (", ", page.Variables.Keys));
+				Log ("  Variables: {0}", String.Join (", ", page.Variables.Keys));
+				Log ("  Assets: {0}", String.Join (", ", page.Assets));
 				//foreach (var entry in page.GetVariables ()) {
 					//Log ("{0} => {1}", entry.Key, entry.Value);
 				//}
+				page.Generate ();
 			}
 		}
 
@@ -90,6 +93,33 @@ namespace Tack
 					}
 				}
 			}
+		}
+
+		public IDictionary<string, object> ProcessMetadata (string file)
+		{
+			foreach (var ext in METADATA_LANGS) {
+				if (file.EndsWith ("." + ext)) {
+					var map = new Dictionary<string, object> ();
+					var stream = new YamlStream ();
+					stream.Load (new StreamReader (file));
+
+					foreach (var doc in stream.Documents) {
+						if (doc.RootNode is YamlMappingNode) {
+							var seq = doc.RootNode as YamlMappingNode;
+							foreach (var node in seq.Children) {
+								var key = node.Key as YamlScalarNode;
+								map.Add (key.Style == YamlDotNet.Core.ScalarStyle.Plain ?
+								         key.Value.Substring (1) : key.Value,
+								         node.Value);
+							}
+						}
+					}
+					return map;
+				}
+			}
+
+			// Not a known meta-data format
+			return null;
 		}
 	}
 }
