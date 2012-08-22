@@ -100,7 +100,7 @@ namespace Tack
 			Directory.CreateDirectory (Tacker.TargetDir + Permalink);
 
 			using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
-				Tacker.FindTemplate (Template).Render (new DataProviderWrapper (this), writer, Tacker.FindTemplate);
+				Tacker.FindTemplate (Template).Render (new DictWrapper (this), writer, Tacker.FindTemplate);
 			}
 		}
 
@@ -115,10 +115,10 @@ namespace Tack
 			case "permalink": return Permalink;
 			case "slug": return Name;
 			case "name": return Name;
-			case "parent": return Parent;
-			case "siblings": return Siblings;
-			case "navigation": return Tacker.Navigation;
-			case "ancestors": return Ancestors;
+			case "parent": return DictWrapper.Wrap (Parent);
+			case "siblings": return DictWrapper.Wrap (Siblings);
+			case "navigation": return DictWrapper.Wrap (Tacker.Navigation);
+			case "ancestors": return DictWrapper.Wrap (Ancestors);
 			}
 			try {
 				return Variables [key];

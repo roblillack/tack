@@ -4,13 +4,43 @@ using System.Collections.Generic;
 
 namespace Tack
 {
-	public class DataProviderWrapper : IDictionary<string, object>
+	public class DictWrapper : IDictionary<string, object>
 	{
 		DataProvider dataProvider;
 
-		public DataProviderWrapper (DataProvider provider)
+		public DictWrapper (DataProvider provider)
 		{
 			dataProvider = provider;
+		}
+
+		public static DictWrapper Wrap (Page page)
+		{
+			return new DictWrapper (page);
+		}
+
+		public static IList<DictWrapper> Wrap (IList<Page> pages) 
+		{
+			var wrappers = new List<DictWrapper> ();
+			foreach (var i in pages) {
+				wrappers.Add (new DictWrapper (i));
+			}
+			return wrappers;
+		}
+
+		public static ISet<DictWrapper> Wrap (ISet<Page> pages)
+		{
+			var wrappers = new HashSet<DictWrapper> ();
+			foreach (var i in pages) {
+				wrappers.Add (new DictWrapper (i));
+			}
+			return wrappers;
+		}
+
+		public static IEnumerable<DictWrapper> Wrap (IEnumerable<Page> pages)
+		{
+			foreach (var i in pages) {
+				yield return new DictWrapper (i);
+			}
 		}
 
 		public void Add (string key, object value) {}
