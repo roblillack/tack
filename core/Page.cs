@@ -117,7 +117,7 @@ namespace Tack
 			case "name": return Name;
 			case "parent": return Parent;
 			case "siblings": return Siblings;
-			case "navigation": return Siblings;
+			case "navigation": return Tacker.Navigation;
 			case "ancestors": return Ancestors;
 			}
 			try {

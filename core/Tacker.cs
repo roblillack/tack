@@ -22,6 +22,7 @@ namespace Tack
 		public IDictionary<string, object> Metadata { get; protected set; }
 		public LogFn Logger { get; set; }
 		public ISet<Page> Pages { get; protected set; }
+		public IList<Page> Navigation { get; protected set; }
 
 		public Tacker (string dir)
 		{
@@ -32,6 +33,14 @@ namespace Tack
 			foreach (var i in Pages) {
 				i.Init ();
 			}
+
+			var navi = new SortedDictionary<string, Page> ();
+			foreach (var i in Pages) {
+				if (i.Parent == null && !i.IsFloating) {
+					navi.Add (Path.GetFileName (i.DiskPath), i);
+				}
+			}
+			Navigation = new List<Page> (navi.Values);
 		}
 
 		protected void Log (string format, params object[] args)
