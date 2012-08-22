@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using YamlDotNet.RepresentationModel;
+using Nustache.Core;
 
 namespace Tack
 {
@@ -52,11 +53,30 @@ namespace Tack
 			foreach (var i in FindAllAssets ()) {
 				var dest = i.Replace (AssetDir, TargetDir);
 				Directory.CreateDirectory (Path.GetDirectoryName (dest));
-				File.Copy (i, dest);
+				File.Copy (i, dest, true);
 			}
 		}
 
-		ISet<string> FindAllTemplates()
+		public Template FindTemplate (string name)
+		{
+			foreach (var ext in TEMPLATE_LANGS) {
+				var tpl = Path.Combine (TemplateDir, name.Trim () + "." + ext);
+
+				if (!File.Exists (tpl)) {
+					continue;
+				}
+
+				using (var reader = File.OpenText (tpl)) {
+					var template = new Template ();
+					template.Load (reader);
+					return template;
+				}
+			}
+
+            return null;
+        }
+
+		ISet<string> FindAllTemplates ()
 		{
 			var set = new HashSet<string> ();
 			foreach (var i in Directory.EnumerateFiles (TemplateDir, "*",

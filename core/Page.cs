@@ -67,9 +67,15 @@ namespace Tack
 		public void Generate ()
 		{
 			Directory.CreateDirectory (Tacker.TargetDir + Permalink);
-			Nustache.Core.Render.FileToFile (Path.Combine (Tacker.TemplateDir, Template + ".mustache"),
-			                                 DictUtils.Combine (Tacker.Metadata, Variables),
-			                                 Path.Combine (Tacker.TargetDir + Permalink, "index.html"));
+
+			var data = DictUtils.Combine (Tacker.Metadata, Variables);
+			using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
+				Tacker.FindTemplate (Template).Render (data, writer, Tacker.FindTemplate);
+			}
+
+			/*Nustache.Core.Render.FileToFile (Path.Combine (Tacker.TemplateDir, Template + ".mustache"),
+			                                 ,
+			                                 Path.Combine (Tacker.TargetDir + Permalink, "index.html"));*/
 		}
 	}
 }
