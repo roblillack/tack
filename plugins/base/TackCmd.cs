@@ -5,7 +5,7 @@ using Tack.Plugins;
 
 namespace Tack.Plugins.Base
 {
-	public class Tack : Command
+	public class TackCmd : Command
 	{
 		public override string Name {
 			get { return "tack"; }
