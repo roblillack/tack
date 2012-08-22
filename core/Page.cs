@@ -8,26 +8,27 @@ namespace Tack
 {
 	public class Page : DataProvider
 	{
+		// available directly after construction.
 		public string Name { get; protected set; }
 		public string DiskPath { get; protected set; }
 		public Tacker Tacker { get; protected set; }
+		public bool IsFloating { get; protected set; }
 
-		// first available after InitRelationships
+		bool inited = false;
+		// first available after call to Init()
 		public Page Parent { get; protected set; }
 		public IList<Page> Siblings { get; protected set; }
-
-		// first available after InitContent
 		public ISet<string> Assets { get; protected set; }
 		public IDictionary<string, object> Variables { get; protected set; }
 		public string Template { get; protected set; }
-
-		bool inited = false;
 
 		public Page (Tacker tacker, string realpath)
 		{
 			Tacker = tacker;
 			DiskPath = realpath;
-			Name = Regex.Replace (Path.GetFileName (realpath), "^[0-9]+\\.", "");
+			var fn = Path.GetFileName (realpath);
+			Name = Regex.Replace (fn, "^[0-9]+\\.", "");
+			IsFloating = !Regex.Match (fn, "^[0-9]+\\.").Success;
 		}
 
 
@@ -55,7 +56,7 @@ namespace Tack
 					Parent = i;
 				}
 				if (parent.Equals (Path.GetDirectoryName (i.DiskPath)) &&
-				    i != this) {
+				    i != this && !i.IsFloating) {
 					siblings.Add (Path.GetFileName (i.DiskPath), i);
 				}
 			}
