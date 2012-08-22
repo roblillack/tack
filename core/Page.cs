@@ -10,29 +10,53 @@ namespace Tack
 		public string Name { get; protected set; }
 		public string DiskPath { get; protected set; }
 		public string Permalink { get; protected set; }
-		public string Template { get; protected set; }
 		public Tacker Tacker { get; protected set; }
 
-		public Page (Tacker tacker, string path)
+		string template;
+		IDictionary<string, object> variables;
+
+		public Page (Tacker tacker, string realpath)
 		{
 			Tacker = tacker;
-			DiskPath = path;
-			Permalink = path.Replace (tacker.BaseDir, "");
-			Name = Path.GetFileNameWithoutExtension (path);
+			DiskPath = realpath;
+			Permalink = realpath.Replace (Tacker.ContentDir, "");
+			Name = Path.GetFileName (realpath);
 		}
 
-		public IDictionary<string, object> GetVariables ()
+		public string Template {
+			get {
+				if (template != null) {
+					return template;
+				}
+				LoadVariables ();
+				if (template == null) {
+					throw new FileNotFoundException ("No Template found for page " + Permalink);
+				}
+				return template;
+			}
+		}
+
+		public IDictionary<string, object> Variables {
+			get {
+				return variables ?? (variables = LoadVariables ());
+			}
+		}
+
+		private IDictionary<string, object> LoadVariables ()
 		{
 			var map = new Dictionary<string, object> ();
 
-			var stream = new YamlStream ();
-			stream.Load (new StreamReader (DiskPath));
+			foreach (var i in Directory.GetFiles (DiskPath, "*.yml")) {
+				template = template ?? Path.GetFileNameWithoutExtension (i);
+				var stream = new YamlStream ();
+				stream.Load (new StreamReader (i));
 
-			foreach (var doc in stream.Documents) {
-				if (doc.RootNode is YamlMappingNode) {
-					var seq = doc.RootNode as YamlMappingNode;
-					foreach (var node in seq.Children) {
-						map.Add (node.Key.ToString (), node.Value);
+				foreach (var doc in stream.Documents) {
+					if (doc.RootNode is YamlMappingNode) {
+						var seq = doc.RootNode as YamlMappingNode;
+						foreach (var node in seq.Children) {
+							map.Add (node.Key.ToString (), node.Value);
+						}
 					}
 				}
 			}

@@ -6,11 +6,16 @@ namespace Tack
 {
 	public class Tacker
 	{
-		private static readonly string[] TEMPLATE_LANGS = { "mustache" };
-		private static readonly string[] METADATA_LANGS = { "yml" };
+		const string CONTENT_DIRECTORY = "content";
+		const string TEMPLATE_DIRECTORY = "templates";
+		static readonly string[] TEMPLATE_LANGS = { "mustache" };
+		static readonly string[] METADATA_LANGS = { "yml" };
+
 		public delegate void LogFn (string format, params object[] args);
 
 		public string BaseDir { get; protected set; }
+		public string ContentDir { get { return Path.Combine (BaseDir, CONTENT_DIRECTORY); } }
+		public string TemplateDir { get { return Path.Combine (BaseDir, TEMPLATE_DIRECTORY); } }
 		public LogFn Logger { get; set; } 
 
 		public Tacker (string dir)
@@ -35,17 +40,18 @@ namespace Tack
 			Log ("{0} Pages found.", pages.Count);
 
 			foreach (var page in pages) {
-				foreach (var entry in page.GetVariables ()) {
-					Log ("{0} => {1}", entry.Key, entry.Value);
-				}
+				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
+				Log ("  {0}", String.Join (", ", page.Variables.Keys));
+				//foreach (var entry in page.GetVariables ()) {
+					//Log ("{0} => {1}", entry.Key, entry.Value);
+				//}
 			}
 		}
 
 		ISet<string> FindAllTemplates()
 		{
 			var set = new HashSet<string> ();
-			foreach (var i in Directory.EnumerateFiles (Path.Combine (BaseDir, "templates"),
-			                                            "*",
+			foreach (var i in Directory.EnumerateFiles (TemplateDir, "*",
 			                                            SearchOption.AllDirectories)) {
 				foreach (var extension in TEMPLATE_LANGS) {
 					if (i.EndsWith ("." + extension)) {
@@ -59,16 +65,31 @@ namespace Tack
 		ISet<Page> FindAllPages()
 		{
 			var set = new HashSet<Page> ();
-			foreach (var i in Directory.EnumerateFiles (Path.Combine (BaseDir, "content"),
-			                                            "*",
-			                                            SearchOption.AllDirectories)) {
-				foreach (var extension in METADATA_LANGS) {
-					if (i.EndsWith ("." + extension)) {
-						set.Add (new Page (this, i));
+			foreach (var i in FindDirsWithFiles (ContentDir, METADATA_LANGS)) {
+				set.Add (new Page (this, i));
+			}
+			return set;
+		}
+
+		IEnumerable<string> FindDirsWithFiles(string path, params string[] extensions)
+		{
+            foreach (var dir in Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories))
+            {
+				// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
+                string[] files;
+                try {
+                    files = Directory.GetFiles (dir, "*");
+                } catch (UnauthorizedAccessException) {
+                    continue;
+                }
+				foreach (var i in files) {
+					foreach (var ext in extensions) {
+						if (i.EndsWith ("." + ext)) {
+							yield return dir;
+						}
 					}
 				}
 			}
-			return set;
 		}
 	}
 }
