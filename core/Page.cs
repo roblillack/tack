@@ -34,7 +34,8 @@ namespace Tack
 
 		public string Permalink {
 			get {
-				return (Parent == null ? "" : Parent.Permalink) + "/" + Name;
+				return (Parent == null ? "" : Parent.Permalink) + "/" +
+					(Parent == null && "index".Equals (Name) ? "" : Name);
 			}
 		}
 
