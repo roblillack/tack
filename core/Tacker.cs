@@ -26,11 +26,15 @@ namespace Tack
 		public IList<Page> Navigation { get; protected set; }
 
 		Markdown markdown;
+		IDictionary<string, AssetFilter> assetFilters;
 
 		public Tacker (string dir)
 		{
 			markdown = new Markdown ();
 			markdown.AutoHyperlink = true;
+
+			assetFilters = new Dictionary<string, AssetFilter> ();
+			assetFilters.Add ("less", new LessFilter ());
 
 			BaseDir = dir;
 			Metadata = LoadMetadata ();
@@ -70,8 +74,14 @@ namespace Tack
 			foreach (var i in FindAllAssets ()) {
 				var dest = i.Replace (AssetDir, TargetDir);
 				Directory.CreateDirectory (Path.GetDirectoryName (dest));
-				File.Copy (i, dest, true);
-				Console.WriteLine ("Copying {0}", i);
+				if (assetFilters.ContainsKey (Path.GetExtension (i).Replace (".", ""))) {
+					var filter = assetFilters [Path.GetExtension (i).Replace (".", "")];
+					Log ("Applying {0} to {1} ...", filter.GetType ().Name, i);
+					filter.Filter (this, i);
+				} else {
+					Console.WriteLine ("Copying {0}", i);
+					File.Copy (i, dest, true);
+				}
 			}
 		}
 

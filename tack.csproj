@@ -62,6 +62,9 @@
     <Reference Include="MarkdownSharp">
       <HintPath>lib\markdownsharp\bin\Release\MarkdownSharp.dll</HintPath>
     </Reference>
+    <Reference Include="dotless.Core">
+      <HintPath>lib\dotless\dotless.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -76,6 +79,8 @@
     <Compile Include="core\TackApp.cs" />
     <Compile Include="core\DataProvider.cs" />
     <Compile Include="core\DictWrapper.cs" />
+    <Compile Include="core\AssetFilter.cs" />
+    <Compile Include="core\LessFilter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
