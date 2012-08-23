@@ -54,9 +54,7 @@ namespace Tack
 
 		public void Tack ()
 		{
-			Log ("Tacking up {0}", BaseDir);
-			Log ("{0} Templates found.", FindAllTemplates ().Count);
-			Log ("{0} Pages found.", Pages.Count);
+			Log ("Tacking up {0} ({1} pages)", BaseDir, Pages.Count);
 
 			foreach (var page in Pages) {
 				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
@@ -67,6 +65,7 @@ namespace Tack
 				var dest = i.Replace (AssetDir, TargetDir);
 				Directory.CreateDirectory (Path.GetDirectoryName (dest));
 				File.Copy (i, dest, true);
+				Console.WriteLine ("Copying {0}", i);
 			}
 		}
 
@@ -89,20 +88,6 @@ namespace Tack
             return null;
         }
 
-		ISet<string> FindAllTemplates ()
-		{
-			var set = new HashSet<string> ();
-			foreach (var i in Directory.EnumerateFiles (TemplateDir, "*",
-			                                            SearchOption.AllDirectories)) {
-				foreach (var extension in TEMPLATE_LANGS) {
-					if (i.EndsWith ("." + extension)) {
-						set.Add (i);
-					}
-				}
-			}
-			return set;
-		}
-
 		ISet<Page> FindAllPages()
 		{
 			var set = new HashSet<Page> ();
@@ -114,16 +99,8 @@ namespace Tack
 
 		IEnumerable<string> FindDirsWithFiles(string path, params string[] extensions)
 		{
-            foreach (var dir in Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories))
-            {
-				// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
-                string[] files;
-                try {
-                    files = Directory.GetFiles (dir, "*");
-                } catch (UnauthorizedAccessException) {
-                    continue;
-                }
-				foreach (var i in files) {
+            foreach (var dir in Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories)) {
+				foreach (var i in GetAllFiles (dir)) {
 					foreach (var ext in extensions) {
 						if (i.EndsWith ("." + ext)) {
 							yield return dir;
@@ -133,17 +110,24 @@ namespace Tack
 			}
 		}
 
+		string[] GetAllFiles (string dir)
+		{
+			try {
+				return Directory.GetFiles (dir, "*", SearchOption.TopDirectoryOnly);
+			} catch (UnauthorizedAccessException) {
+				return new string[]{};
+			}
+		}
+
 		IEnumerable<string> FindAllAssets ()
 		{
+			// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
+			foreach (var i in GetAllFiles (AssetDir)) {
+				yield return i;
+			}
+
 			foreach (var dir in Directory.EnumerateDirectories (AssetDir, "*", SearchOption.AllDirectories)) {
-				// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
-				string[] files;
-				try {
-					files = Directory.GetFiles (dir, "*");
-				} catch (UnauthorizedAccessException) {
-					continue;
-				}
-				foreach (var i in files) {
+				foreach (var i in GetAllFiles (dir)) {
 					yield return i;
 				}
 			}
@@ -179,7 +163,7 @@ namespace Tack
 		private IDictionary<string, object> LoadMetadata ()
 		{
 			var metadata = new Dictionary<string, object> ();
-			foreach (var file in Directory.GetFiles (BaseDir, "*")) {
+			foreach (var file in GetAllFiles (BaseDir)) {
 				var map = ProcessMetadata (file);
 				if (map != null) {
 					metadata.AddAll (map);
