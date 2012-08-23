@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using YamlDotNet.RepresentationModel;
 using Nustache.Core;
+using MarkdownSharp;
 
 namespace Tack
 {
@@ -24,8 +25,13 @@ namespace Tack
 		public ISet<Page> Pages { get; protected set; }
 		public IList<Page> Navigation { get; protected set; }
 
+		Markdown markdown;
+
 		public Tacker (string dir)
 		{
+			markdown = new Markdown ();
+			markdown.AutoHyperlink = true;
+
 			BaseDir = dir;
 			Metadata = LoadMetadata ();
 			Pages = FindAllPages ();
@@ -146,9 +152,14 @@ namespace Tack
 							var seq = doc.RootNode as YamlMappingNode;
 							foreach (var node in seq.Children) {
 								var key = node.Key as YamlScalarNode;
+								object val = node.Value;
+								if (val is YamlScalarNode && (val as YamlScalarNode).Style == YamlDotNet.Core.ScalarStyle.Literal) {
+									Console.WriteLine ("{0} --> {1}", key, (val as YamlScalarNode).Style);
+									val = markdown.Transform (val.ToString ());
+								}
 								map.Add (key.Style == YamlDotNet.Core.ScalarStyle.Plain ?
 								         key.Value.Substring (1) : key.Value,
-								         node.Value);
+								         val);
 							}
 						}
 					}
