@@ -75,6 +75,11 @@ namespace Tack
 					metadata.AddAll (md);
 					continue;
 				}
+				var markup = Tacker.ProcessMarkup (i);
+				if (markup != null) {
+					metadata.Add (Path.GetFileNameWithoutExtension (i), markup);
+					continue;
+				}
 
 				assets.Add (i.Replace (DiskPath, ""));
 			}

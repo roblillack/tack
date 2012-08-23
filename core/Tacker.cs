@@ -154,7 +154,6 @@ namespace Tack
 								var key = node.Key as YamlScalarNode;
 								object val = node.Value;
 								if (val is YamlScalarNode && (val as YamlScalarNode).Style == YamlDotNet.Core.ScalarStyle.Literal) {
-									Console.WriteLine ("{0} --> {1}", key, (val as YamlScalarNode).Style);
 									val = markdown.Transform (val.ToString ());
 								}
 								map.Add (key.Style == YamlDotNet.Core.ScalarStyle.Plain ?
@@ -168,6 +167,17 @@ namespace Tack
 			}
 
 			// Not a known meta-data format
+			return null;
+		}
+
+		public string ProcessMarkup (string file)
+		{
+			foreach (var ext in MARKUP_LANGS) {
+				if (Path.GetExtension (file).Equals ("." + ext)) {
+					return markdown.Transform (File.ReadAllText (file));
+				}
+			}
+
 			return null;
 		}
 
