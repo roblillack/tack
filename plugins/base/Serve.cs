@@ -11,6 +11,8 @@ namespace Tack.Plugins.Base
 {
 	public class Serve : Command
 	{
+		Tacker tacker;
+
         public override string Name {
 			get { return "serve"; }
 		}
@@ -21,8 +23,10 @@ namespace Tack.Plugins.Base
 		
 		public override void Execute (IList<string> parameters)
 		{
-			var tacker = new Tacker (Directory.GetCurrentDirectory ());
+			tacker = new Tacker (Directory.GetCurrentDirectory ());
 			tacker.Tack ();
+
+			new Thread (WatchForChanges).Start ();
 
 			HttpListener listener = new HttpListener();
 			listener.Prefixes.Add ("http://*:8080/");
@@ -30,8 +34,32 @@ namespace Tack.Plugins.Base
 			Console.WriteLine ("Serving from {0}, listening on port 8080 …", tacker.TargetDir);
 			for(;;) {
 				HttpListenerContext ctx = listener.GetContext();
-				new Thread(new RequestHandler(tacker, ctx).ProcessRequest).Start();
+				new Thread (new RequestHandler (tacker, ctx).ProcessRequest).Start ();
 			}
+		}
+
+		private void WatchForChanges ()
+		{
+			var watcher = new FileSystemWatcher(tacker.BaseDir);
+			watcher.IncludeSubdirectories = true;
+			watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+
+			watcher.Changed += new FileSystemEventHandler (OnChanged);
+			watcher.Created += new FileSystemEventHandler (OnChanged);
+			watcher.Deleted += new FileSystemEventHandler (OnChanged);
+			watcher.Renamed += new RenamedEventHandler (OnChanged);
+
+			// Begin watching.
+			watcher.EnableRaisingEvents = true;
+			while (true) {
+				watcher.WaitForChanged (WatcherChangeTypes.All);
+			}
+		}
+
+		private void OnChanged (object obj, FileSystemEventArgs args)
+		{
+			Console.WriteLine ("Changes detected. Re-Tacking.");
+			tacker.Tack ();
 		}
 	}
 
