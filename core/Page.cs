@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using YamlDotNet.RepresentationModel;
@@ -115,7 +116,7 @@ namespace Tack
 			switch (key) {
 			case "permalink": return Permalink;
 			case "slug": return Name;
-			case "name": return Name;
+			case "name": return CultureInfo.CurrentCulture.TextInfo.ToTitleCase (Name.Replace ("-", " "));
 			case "parent": return DictWrapper.Wrap (Parent);
 			case "siblings": return DictWrapper.Wrap (Siblings);
 			case "navigation": return DictWrapper.Wrap (Tacker.Navigation);
