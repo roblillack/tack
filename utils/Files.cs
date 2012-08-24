@@ -38,15 +38,14 @@ namespace Tack.Utils
 		{
 			// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
 			foreach (var dir in EnumerateAllSubdirs (path)) {
+				var found = false;
 				foreach (var i in GetAllFiles (dir)) {
-					if (extensions == null) {
-						yield return dir;
+					if (extensions.Contains (Path.GetExtension (i).Replace (".", ""))) {
+						found = true;
 					}
-					foreach (var ext in extensions) {
-						if (i.EndsWith ("." + ext)) {
-							yield return dir;
-						}
-					}
+				}
+				if (found) {
+					yield return dir;
 				}
 			}
 		}
