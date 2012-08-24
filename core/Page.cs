@@ -91,7 +91,15 @@ namespace Tack
 				assets.Add (i.Replace (DiskPath, ""));
 			}
 
-			Assets = assets;
+			foreach (var subdir in Files.EnumerateAllSubdirs (DiskPath)) {
+				foreach (var page in Tacker.Pages) {
+					if (!page.DiskPath.Equals (subdir)) {
+						assets.AddAll (Files.EnumerateAllFiles (subdir));
+					}
+				}
+			}
+
+			Assets = new HashSet<string> (assets.Select (x => x.Replace (DiskPath, "")));
 			Variables = metadata;
 			inited = true;
 		}
@@ -111,6 +119,14 @@ namespace Tack
 			using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
 				Tacker.FindTemplate (Template).Render (new DictWrapper (this, new RenderContext (this)), writer, Tacker.FindTemplate);
 			}
+
+			foreach (var i in Assets) {
+				var dest = Tacker.TargetDir + Permalink + i;
+				Console.WriteLine ("Copying {0} ...", i, dest);
+				Directory.CreateDirectory (Path.GetDirectoryName (dest));
+				File.Copy (DiskPath + i, dest, true);
+			}
+
 		}
 
 		public override string ToString()

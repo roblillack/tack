@@ -12,7 +12,7 @@ namespace Tack.Utils
 			}
 		}
 
-		public static void AddAll<T> (this ICollection<T> me, ICollection<T> other)
+		public static void AddAll<T> (this ICollection<T> me, IEnumerable<T> other)
 		{
 			foreach (var i in other) {
 				me.Add (i);
