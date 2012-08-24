@@ -103,7 +103,7 @@ namespace Tack
 			Directory.CreateDirectory (Tacker.TargetDir + Permalink);
 
 			using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
-				Tacker.FindTemplate (Template).Render (new DictWrapper (this), writer, Tacker.FindTemplate);
+				Tacker.FindTemplate (Template).Render (new DictWrapper (this, new RenderContext (this)), writer, Tacker.FindTemplate);
 			}
 		}
 
@@ -112,16 +112,17 @@ namespace Tack
 			return Name;
 		}
 
-		public object GetData (string key) {
+		public object GetData (string key, RenderContext ctx) {
 			key = key.Trim ();
 			switch (key) {
 			case "permalink": return Permalink;
 			case "slug": return Name;
 			case "name": return CultureInfo.CurrentCulture.TextInfo.ToTitleCase (Name.Replace ("-", " "));
-			case "parent": return DictWrapper.Wrap (Parent);
-			case "siblings": return DictWrapper.Wrap (Siblings);
-			case "navigation": return DictWrapper.Wrap (Tacker.Navigation);
-			case "ancestors": return DictWrapper.Wrap (Ancestors);
+			case "parent": return Parent;
+			case "siblings": return Siblings;
+			case "navigation": return Tacker.Navigation;
+			case "ancestors": return Ancestors;
+			case "current": return ctx != null && ctx.Page == this;
 			}
 			try {
 				return Variables [key];

@@ -83,6 +83,7 @@
     <Compile Include="utils\Collections.cs" />
     <Compile Include="utils\Files.cs" />
     <Compile Include="tests\FilesTest.cs" />
+    <Compile Include="core\RenderContext.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

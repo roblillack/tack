@@ -4,7 +4,7 @@ namespace Tack
 {
 	public interface DataProvider
 	{
-		object GetData (string key);
+		object GetData (string key, RenderContext ctx);
 	}
 }
 

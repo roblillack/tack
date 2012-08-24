@@ -7,40 +7,37 @@ namespace Tack
 	public class DictWrapper : IDictionary<string, object>
 	{
 		DataProvider dataProvider;
+		RenderContext renderContext;
 
-		public DictWrapper (DataProvider provider)
+		public DictWrapper (DataProvider provider, RenderContext ctx)
 		{
 			dataProvider = provider;
+			renderContext = ctx;
 		}
 
-		public static DictWrapper Wrap (Page page)
+		public object Wrap (object o)
 		{
-			return new DictWrapper (page);
+			if (o is Page) {
+				return Wrap (o as Page);
+			} else if (o is IEnumerable<Page>) {
+				return Wrap (o as IEnumerable<Page>);
+			}
+
+			return o;
 		}
 
-		public static IList<DictWrapper> Wrap (IList<Page> pages) 
+		public DictWrapper Wrap (Page page)
+		{
+			return new DictWrapper (page, renderContext);
+		}
+
+		public IList<DictWrapper> Wrap (IEnumerable<Page> pages) 
 		{
 			var wrappers = new List<DictWrapper> ();
 			foreach (var i in pages) {
-				wrappers.Add (new DictWrapper (i));
+				wrappers.Add (Wrap (i));
 			}
 			return wrappers;
-		}
-
-		public static ISet<DictWrapper> Wrap (ISet<Page> pages)
-		{
-			var wrappers = new HashSet<DictWrapper> ();
-			foreach (var i in pages) {
-				wrappers.Add (new DictWrapper (i));
-			}
-			return wrappers;
-		}
-
-		public static IEnumerable<DictWrapper> Wrap (IEnumerable<Page> pages)
-		{
-			foreach (var i in pages) {
-				yield return new DictWrapper (i);
-			}
 		}
 
 		public void Add (string key, object value) {}
@@ -52,24 +49,24 @@ namespace Tack
 
 		public bool ContainsKey (string key)
 		{
-			return dataProvider.GetData (key) != null;
+			return dataProvider.GetData (key, renderContext) != null;
 		}
 
 		public bool Contains (KeyValuePair<string, object> kvp)
 		{
-			return kvp.Value.Equals (dataProvider.GetData (kvp.Key));
+			return kvp.Value.Equals (dataProvider.GetData (kvp.Key, renderContext));
 		}
 
 		public object this [string key] {
 			get {
-				return dataProvider.GetData (key);
+				return Wrap (dataProvider.GetData (key, renderContext));
 			}
 			set {}
 		}
 
 		public bool TryGetValue (string key, out object dest)
 		{
-			dest = dataProvider.GetData (key);
+			dest = dataProvider.GetData (key, renderContext);
 			return dest != null;
 		}
 
