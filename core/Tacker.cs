@@ -67,6 +67,8 @@ namespace Tack
 		{
 			Log ("Tacking up {0} ({1} pages)", BaseDir, Pages.Count);
 
+			Directory.Delete (TargetDir, true);
+
 			foreach (var page in Pages) {
 				Log ("{0} => {1} (template: {2})", page.Permalink, page.Name, page.Template);
 				page.Generate ();
