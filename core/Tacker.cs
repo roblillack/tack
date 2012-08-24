@@ -112,66 +112,15 @@ namespace Tack
 		ISet<Page> FindAllPages()
 		{
 			var set = new HashSet<Page> ();
-			foreach (var i in FindDirsWithFiles (ContentDir, Collections.CombinedSet (MARKUP_LANGS, METADATA_LANGS))) {
+			foreach (var i in Files.FindDirsWithFiles (ContentDir, Collections.CombinedSet (MARKUP_LANGS, METADATA_LANGS))) {
 				set.Add (new Page (this, i));
 			}
 			return set;
 		}
 
-		IEnumerable<string> FindDirsWithFiles(string path, ICollection<string> extensions)
-		{
-			// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
-			IEnumerable<string> dirs;
-			try {
-				dirs = Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories);
-			} catch (DirectoryNotFoundException) {
-				yield break;
-			}
-
-			var e = dirs.GetEnumerator ();
-			for (;;) {
-				try {
-					if (!e.MoveNext ()) {
-						yield break;
-					}
-				} catch (DirectoryNotFoundException) {
-					yield break;
-				}
-
-				var dir = e.Current;
-				foreach (var i in GetAllFiles (dir)) {
-					if (extensions == null) {
-						yield return dir;
-					}
-					foreach (var ext in extensions) {
-						if (i.EndsWith ("." + ext)) {
-							yield return dir;
-						}
-					}
-				}
-			}
-		}
-
-		string[] GetAllFiles (string dir)
-		{
-			try {
-				return Directory.GetFiles (dir, "*", SearchOption.TopDirectoryOnly);
-			} catch (Exception) {
-				return new string[]{};
-			}
-		}
-
 		IEnumerable<string> FindAllAssets ()
 		{
-			foreach (var i in GetAllFiles (AssetDir)) {
-				yield return i;
-			}
-
-			foreach (var dir in FindDirsWithFiles (AssetDir, null)) {
-				foreach (var i in GetAllFiles (dir)) {
-					yield return i;
-				}
-			}
+			return Files.EnumerateAllFiles (AssetDir);
 		}
 
 		public IDictionary<string, object> ProcessMetadata (string file)
@@ -219,7 +168,7 @@ namespace Tack
 		private IDictionary<string, object> LoadMetadata ()
 		{
 			var metadata = new Dictionary<string, object> ();
-			foreach (var file in GetAllFiles (BaseDir)) {
+			foreach (var file in Files.GetAllFiles (BaseDir)) {
 				var map = ProcessMetadata (file);
 				if (map != null) {
 					metadata.AddAll (map);
