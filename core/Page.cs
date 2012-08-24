@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using YamlDotNet.RepresentationModel;
 using Tack.Utils;
@@ -43,9 +44,14 @@ namespace Tack
 
 		public IEnumerable<Page> Ancestors {
 			get {
-				for (var p = Parent; p != null; p = p.Parent) {
-					yield return p;
-				}
+				return GetReverseAncestors ().Reverse ();
+			}
+		}
+
+		IEnumerable<Page> GetReverseAncestors ()
+		{
+			for (var p = Parent; p != null; p = p.Parent) {
+				yield return p;
 			}
 		}
 
