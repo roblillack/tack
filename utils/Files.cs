@@ -6,8 +6,11 @@ namespace Tack.Utils
 {
 	public class Files
 	{
-		public static IEnumerable<string> EnumerateAllSubdirs (string path)
+		public static IEnumerable<string> EnumerateAllDirs (string path, bool includeTopLevel = true)
 		{
+			if (includeTopLevel && Directory.Exists (path)) {
+				yield return path;
+			}
 			var e = Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories).GetEnumerator ();
 			for (;;) {
 				try {
@@ -21,13 +24,14 @@ namespace Tack.Utils
 			}
 		}
 
+		public static IEnumerable<string> EnumerateAllSubdirs (string path)
+		{
+			return EnumerateAllDirs (path, false);
+		}
+
 		public static IEnumerable<string> EnumerateAllFiles (string path)
 		{
-			foreach (var i in Files.GetAllFiles (path)) {
-				yield return i;
-			}
-
-			foreach (var dir in Files.EnumerateAllSubdirs (path)) {
+			foreach (var dir in Files.EnumerateAllDirs (path)) {
 				foreach (var i in Files.GetAllFiles (dir)) {
 					yield return i;
 				}

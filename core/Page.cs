@@ -38,7 +38,7 @@ namespace Tack
 		public string Permalink {
 			get {
 				return (Parent == null ? "" : Parent.Permalink) + "/" +
-					(Parent == null && "index".Equals (Name) ? "" : Name);
+					((Parent == null && "index".Equals (Name)) ? "" : Name);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace Tack
 			var metadata = new Dictionary<string, object> ();
 			var assets = new HashSet<string> ();
 
-			foreach (var i in Directory.GetFiles (DiskPath, "*")) {
+			foreach (var i in Files.GetAllFiles (DiskPath)) {
 				var md = Tacker.ProcessMetadata (i);
 				if (md != null) {
 					Template = Template ?? Path.GetFileNameWithoutExtension (i);
@@ -88,14 +88,17 @@ namespace Tack
 					continue;
 				}
 
-				assets.Add (i.Replace (DiskPath, ""));
+				assets.Add (i);
+			}
+
+			var pagePaths = new HashSet<string> ();
+			foreach (var page in Tacker.Pages) {
+				pagePaths.Add (page.DiskPath);
 			}
 
 			foreach (var subdir in Files.EnumerateAllSubdirs (DiskPath)) {
-				foreach (var page in Tacker.Pages) {
-					if (!page.DiskPath.Equals (subdir)) {
-						assets.AddAll (Files.EnumerateAllFiles (subdir));
-					}
+				if (!pagePaths.Contains (subdir)) {
+					assets.AddAll (Files.GetAllFiles (subdir));
 				}
 			}
 
@@ -111,6 +114,7 @@ namespace Tack
 			}
 
 			Console.WriteLine ("Generating {0}", Name);
+			Console.WriteLine (" - permalink: {0}", Permalink);
 			Console.WriteLine (" - ancestors: {0}", String.Join (" << ", Ancestors));
 			Console.WriteLine (" - siblings: {0}", String.Join (", ", Siblings));
 
