@@ -76,32 +76,35 @@ namespace Tack.Plugins.Base
 		public void ProcessRequest ()
 		{
 			string msg = context.Request.HttpMethod + " " + context.Request.Url;
-			Console.WriteLine(msg);
+			Console.WriteLine (msg);
 
-			foreach (var f in new string[] {
-				tacker.TargetDir + context.Request.Url.AbsolutePath,
-				Path.Combine (tacker.TargetDir + context.Request.Url.AbsolutePath, "index.html")
-			}) {
-				Console.WriteLine (f);
-				if (!File.Exists (f)) {
-					continue;
-				}
+			var f = tacker.TargetDir + context.Request.Url.AbsolutePath;
+			if (f.EndsWith ("/")) {
+				f += "index.html";
+			}
+
+			if (File.Exists (f)) {
 				byte[] bytes = File.ReadAllBytes (f);
 				context.Response.ContentLength64 = bytes.Length;
 				context.Response.OutputStream.Write (bytes, 0, bytes.Length);
 				context.Response.OutputStream.Close ();
-				return;
+			} else if (File.Exists (Path.Combine (f, "index.html"))) {
+				context.Response.StatusCode = 301;
+				context.Response.StatusDescription = "Moved Permanently";
+				context.Response.AddHeader ("Location", context.Request.Url + "/");
+				context.Response.ContentLength64 = 0;
+				context.Response.OutputStream.Close ();
+			} else {
+				StringBuilder sb = new StringBuilder ();
+				sb.Append ("<h1>404 – File not found :(</h1>");
+	  
+				byte[] b = Encoding.UTF8.GetBytes (sb.ToString ());
+				context.Response.StatusCode = 404;
+				context.Response.StatusDescription = "File not found";
+				context.Response.ContentLength64 = b.Length;
+				context.Response.OutputStream.Write (b, 0, b.Length);
+				context.Response.OutputStream.Close ();
 			}
-  
-			StringBuilder sb = new StringBuilder();
-			sb.Append("<h1>404 – File not found :(</h1>");
-  
-			byte[] b = Encoding.UTF8.GetBytes(sb.ToString());
-			context.Response.StatusCode = 404;
-			context.Response.StatusDescription = "File not found";
-			context.Response.ContentLength64 = b.Length;
-			context.Response.OutputStream.Write(b, 0, b.Length);
-			context.Response.OutputStream.Close();
 		}
 	}
 }
