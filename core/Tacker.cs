@@ -4,6 +4,7 @@ using System.IO;
 using YamlDotNet.RepresentationModel;
 using Nustache.Core;
 using MarkdownSharp;
+using Tack.Utils;
 
 namespace Tack
 {
@@ -107,16 +108,37 @@ namespace Tack
 		ISet<Page> FindAllPages()
 		{
 			var set = new HashSet<Page> ();
-			foreach (var i in FindDirsWithFiles (ContentDir, METADATA_LANGS)) {
+			foreach (var i in FindDirsWithFiles (ContentDir, Collections.CombinedSet (MARKUP_LANGS, METADATA_LANGS))) {
 				set.Add (new Page (this, i));
 			}
 			return set;
 		}
 
-		IEnumerable<string> FindDirsWithFiles(string path, params string[] extensions)
+		IEnumerable<string> FindDirsWithFiles(string path, ICollection<string> extensions)
 		{
-            foreach (var dir in Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories)) {
+			// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
+			IEnumerable<string> dirs;
+			try {
+				dirs = Directory.EnumerateDirectories (path, "*", SearchOption.AllDirectories);
+			} catch (DirectoryNotFoundException) {
+				yield break;
+			}
+
+			var e = dirs.GetEnumerator ();
+			for (;;) {
+				try {
+					if (!e.MoveNext ()) {
+						yield break;
+					}
+				} catch (DirectoryNotFoundException) {
+					yield break;
+				}
+
+				var dir = e.Current;
 				foreach (var i in GetAllFiles (dir)) {
+					if (extensions == null) {
+						yield return dir;
+					}
 					foreach (var ext in extensions) {
 						if (i.EndsWith ("." + ext)) {
 							yield return dir;
@@ -130,19 +152,18 @@ namespace Tack
 		{
 			try {
 				return Directory.GetFiles (dir, "*", SearchOption.TopDirectoryOnly);
-			} catch (UnauthorizedAccessException) {
+			} catch (Exception) {
 				return new string[]{};
 			}
 		}
 
 		IEnumerable<string> FindAllAssets ()
 		{
-			// FIXME: There seems to be a bug in Mono's Directory.EnumerateFiles implementation
 			foreach (var i in GetAllFiles (AssetDir)) {
 				yield return i;
 			}
 
-			foreach (var dir in Directory.EnumerateDirectories (AssetDir, "*", SearchOption.AllDirectories)) {
+			foreach (var dir in FindDirsWithFiles (AssetDir, null)) {
 				foreach (var i in GetAllFiles (dir)) {
 					yield return i;
 				}

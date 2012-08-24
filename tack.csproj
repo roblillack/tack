@@ -73,7 +73,6 @@
     <Compile Include="tests\TackTest.cs" />
     <Compile Include="core\Tacker.cs" />
     <Compile Include="core\Page.cs" />
-    <Compile Include="core\DictUtils.cs" />
     <Compile Include="plugins\base\Serve.cs" />
     <Compile Include="plugins\base\TackCmd.cs" />
     <Compile Include="core\TackApp.cs" />
@@ -81,6 +80,7 @@
     <Compile Include="core\DictWrapper.cs" />
     <Compile Include="core\AssetFilter.cs" />
     <Compile Include="core\LessFilter.cs" />
+    <Compile Include="utils\Collections.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -88,5 +88,6 @@
     <Folder Include="plugins\base\" />
     <Folder Include="core\" />
     <Folder Include="tests\" />
+    <Folder Include="utils\" />
   </ItemGroup>
 </Project>
