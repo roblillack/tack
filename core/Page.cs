@@ -87,11 +87,6 @@ namespace Tack
 
 			Assets = assets;
 			Variables = metadata;
-
-			if (Template == null) {
-				throw new FileNotFoundException ("No Template found for page " + Name);
-			}
-
 			inited = true;
 		}
 

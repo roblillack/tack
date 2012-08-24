@@ -88,6 +88,10 @@ namespace Tack
 
 		public Template FindTemplate (string name)
 		{
+			if (name == null) {
+				name = "default";
+			}
+
 			foreach (var ext in TEMPLATE_LANGS) {
 				var tpl = Path.Combine (TemplateDir, name.Trim () + "." + ext);
 
