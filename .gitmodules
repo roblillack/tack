@@ -1,3 +1,0 @@
-[submodule "ext/nustache"]
-	path = ext/nustache
-	url = git://github.com/jdiamond/Nustache.git
