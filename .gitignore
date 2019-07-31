@@ -1,4 +1,6 @@
-bin
+/bin
+/obj
+/tmp
 *.pidb
 test-results
 *.userprefs
