@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"io"
 	"strings"
 
@@ -41,9 +40,9 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 	data["ancestors"] = page.Ancestors()
 	//data["current"] = ctx != null && ctx.Page == this;
 
-	for k, v := range data {
-		fmt.Printf("%20s = %+v\n", k, v)
-	}
+	// for k, v := range data {
+	// 	fmt.Printf("%20s = %+v\n", k, v)
+	// }
 
 	str, err := t.Template.Render(data)
 	if err != nil {

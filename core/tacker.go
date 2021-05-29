@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/cbroglie/mustache"
 	"gopkg.in/yaml.v2"
 )
 
@@ -39,6 +40,9 @@ func NewTacker(dir string) (*Tacker, error) {
 
 	// assetFilters = new Dictionary<string, AssetFilter> ();
 	// assetFilters.Add ("less", new LessFilter ());
+
+	mustache.AllowMissingVariables = true
+
 	t := &Tacker{
 		BaseDir: dir,
 	}
@@ -107,7 +111,7 @@ func (t *Tacker) Tack() error {
 		// 		Log ("Applying {0} to {1} ...", filter.GetType ().Name, i);
 		// 		filter.Filter (this, i);
 		// 	} else {
-		fmt.Printf("Copying %s\n", i)
+		fmt.Printf("Copying %s\n", strings.TrimPrefix(i, assetDir))
 		if err := CopyFile(i, dest); err != nil {
 			return err
 		}

@@ -190,11 +190,11 @@ func (p *Page) Generate() error {
 	defer f.Close()
 
 	if err := tpl.Render(p, f); err != nil {
-		return err
+		return fmt.Errorf("unable to render template '%s' when rendering '%s': %s", p.Template, p.Permalink(), err)
 	}
 
 	for i := range p.Assets {
-		fmt.Printf("Copying %s ...", i)
+		fmt.Printf("Copying ...%s\n", i)
 		if err := os.MkdirAll(filepath.Dir(filepath.Join(destDir, i)), 0755); err != nil {
 			return err
 		}
