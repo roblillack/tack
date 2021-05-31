@@ -101,3 +101,8 @@ func BasenameWithoutExtension(path string) string {
 	b := filepath.Base(path)
 	return strings.TrimSuffix(b, filepath.Ext(b))
 }
+
+func DirExists(path string) bool {
+	s, err := os.Stat(path)
+	return err == nil && s.IsDir()
+}

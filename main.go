@@ -18,7 +18,7 @@ func main() {
 	if len(os.Args) == 2 {
 		d, err := filepath.Abs(os.Args[1])
 		if err != nil {
-			Fatalf("Unable to resolve direcotry %s: %s", os.Args[1], err)
+			Fatalf("Unable to resolve directory %s: %s", os.Args[1], err)
 		}
 		dir = d
 	} else {
@@ -31,10 +31,10 @@ func main() {
 
 	tacker, err := core.NewTacker(dir)
 	if err != nil {
-		Fatalf("Unable to initialize tacker: %w", err)
+		Fatalf(err.Error())
 	}
 
 	if err := tacker.Tack(); err != nil {
-		Fatalf("Error tacking: %s", err)
+		Fatalf(err.Error())
 	}
 }

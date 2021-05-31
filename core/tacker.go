@@ -43,6 +43,14 @@ func NewTacker(dir string) (*Tacker, error) {
 
 	mustache.AllowMissingVariables = true
 
+	if !DirExists(dir) {
+		return nil, fmt.Errorf("directory does not exist: %s", dir)
+	}
+
+	if !DirExists(filepath.Join(dir, ContentDir)) || !DirExists(filepath.Join(dir, TemplateDir)) {
+		return nil, fmt.Errorf("does not look like a Tack-able site directory: %s", dir)
+	}
+
 	t := &Tacker{
 		BaseDir: dir,
 	}
