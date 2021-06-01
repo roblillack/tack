@@ -20,31 +20,48 @@ func NewTemplate(raw []byte) (*Template, error) {
 	return &Template{tpl}, nil
 }
 
+func PageValues(p *Page, ctx *Page) map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+
+	return map[string]interface{}{
+		"permalink": p.Permalink(),
+		"slug":      p.Name,
+		"name":      strings.Replace(strings.ToTitle(p.Name), "-", " ", -1),
+		"current":   ctx != nil && ctx == p,
+	}
+}
+
+func PageListValues(pages []*Page, ctx *Page) []map[string]interface{} {
+	r := []map[string]interface{}{}
+	for _, i := range pages {
+		r = append(r, PageValues(i, ctx))
+	}
+	return r
+}
+
 func (t *Template) Render(page *Page, w io.Writer) error {
-	data := map[string]interface{}{}
+	ctx := map[string]interface{}{}
 
 	for k, v := range page.Tacker.Metadata {
-		data[k] = v
+		ctx[k] = v
 	}
 
 	for k, v := range page.Variables {
-		data[k] = v
+		ctx[k] = v
 	}
 
-	data["permalink"] = page.Permalink()
-	data["slug"] = page.Name
-	data["name"] = strings.Replace(strings.ToTitle(page.Name), "-", " ", -1)
-	data["parent"] = page.Parent
-	data["siblings"] = page.Siblings
-	data["navigation"] = page.Tacker.Navigation
-	data["ancestors"] = page.Ancestors()
-	//data["current"] = ctx != null && ctx.Page == this;
+	for k, v := range PageValues(page, page) {
+		ctx[k] = v
+	}
 
-	// for k, v := range data {
-	// 	fmt.Printf("%20s = %+v\n", k, v)
-	// }
+	ctx["parent"] = PageValues(page.Parent, page)
+	ctx["siblings"] = PageListValues(page.Siblings, page)
+	ctx["navigation"] = PageListValues(page.Tacker.Navigation, page)
+	ctx["ancestors"] = PageListValues(page.Ancestors(), page)
 
-	str, err := t.Template.Render(data)
+	str, err := t.Template.Render(ctx)
 	if err != nil {
 		return err
 	}
