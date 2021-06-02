@@ -205,33 +205,3 @@ func (p *Page) Generate() error {
 
 	return nil
 }
-
-// 		public override string ToString()
-// 		{
-// 			return Name;
-// 		}
-
-// 		public object GetData (string key, RenderContext ctx) {
-// 			key = key.Trim ();
-// 			switch (key) {
-// 			case "permalink": return Permalink;
-// 			case "slug": return Name;
-// 			case "name": return CultureInfo.CurrentCulture.TextInfo.ToTitleCase (Name.Replace ("-", " "));
-// 			case "parent": return Parent;
-// 			case "siblings": return Siblings;
-// 			case "navigation": return Tacker.Navigation;
-// 			case "ancestors": return Ancestors;
-// 			case "current": return ctx != null && ctx.Page == this;
-// 			}
-// 			try {
-// 				return Variables [key];
-// 			} catch (KeyNotFoundException) {
-// 				try {
-// 					return Tacker.Metadata [key];
-// 				} catch (KeyNotFoundException) {
-// 					return null;
-// 				}
-// 			}
-// 		}
-// 	}
-// }

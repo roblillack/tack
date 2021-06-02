@@ -11,15 +11,6 @@ type Template struct {
 	*mustache.Template
 }
 
-func NewTemplate(raw []byte) (*Template, error) {
-	tpl, err := mustache.ParseString(string(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	return &Template{tpl}, nil
-}
-
 func PageValues(p *Page, ctx *Page) map[string]interface{} {
 	if p == nil {
 		return nil

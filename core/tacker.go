@@ -134,12 +134,15 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 		name = "default"
 	}
 
-	raw, err := os.ReadFile(filepath.Join(t.BaseDir, TemplateDir, name+".mustache"))
+	tpl, err := mustache.ParseFilePartials(filepath.Join(t.BaseDir, TemplateDir, name+".mustache"), &mustache.FileProvider{
+		Paths:      []string{filepath.Join(t.BaseDir, TemplateDir)},
+		Extensions: []string{".mustache"},
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return NewTemplate(raw)
+	return &Template{tpl}, nil
 }
 
 func (t *Tacker) findAllPages() error {
