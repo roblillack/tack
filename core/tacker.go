@@ -54,17 +54,26 @@ func NewTacker(dir string) (*Tacker, error) {
 	t := &Tacker{
 		BaseDir: dir,
 	}
-	if err := t.loadSiteMetadata(); err != nil {
+
+	if err := t.Reload(); err != nil {
 		return nil, err
 	}
+
+	return t, nil
+}
+
+func (t *Tacker) Reload() error {
+	if err := t.loadSiteMetadata(); err != nil {
+		return err
+	}
 	if err := t.findAllPages(); err != nil {
-		return nil, err
+		return err
 	}
 
 	navi := []*Page{}
 	for _, i := range t.Pages {
 		if err := i.Init(); err != nil {
-			return nil, err
+			return err
 		}
 		if i.Parent == nil && !i.Floating {
 			navi = append(navi, i)
@@ -74,7 +83,8 @@ func NewTacker(dir string) (*Tacker, error) {
 		return strings.Compare(filepath.Base(navi[i].DiskPath), filepath.Base(navi[j].DiskPath)) == -1
 	})
 	t.Navigation = navi
-	return t, nil
+
+	return nil
 }
 
 func (t *Tacker) Log(format string, args ...interface{}) {

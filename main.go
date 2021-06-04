@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-
-	"github.com/roblillack/tack/core"
 )
 
 func Fatalf(format string, args ...interface{}) {
@@ -14,27 +11,26 @@ func Fatalf(format string, args ...interface{}) {
 }
 
 func main() {
-	dir := ""
-	if len(os.Args) == 2 {
-		d, err := filepath.Abs(os.Args[1])
-		if err != nil {
-			Fatalf("Unable to resolve directory %s: %s", os.Args[1], err)
+	cmd := Tack
+	args := []string{}
+
+	if len(os.Args) >= 2 {
+		found := false
+		for _, i := range commands {
+			if os.Args[1] == i.Name {
+				cmd = i.Fn
+				found = true
+				break
+			}
 		}
-		dir = d
-	} else {
-		cwd, err := os.Getwd()
-		if err != nil {
-			Fatalf("Unable to determine working dir: %s", err)
+		if found {
+			args = os.Args[2:]
+		} else {
+			args = os.Args[1:]
 		}
-		dir = cwd
 	}
 
-	tacker, err := core.NewTacker(dir)
-	if err != nil {
-		Fatalf(err.Error())
-	}
-
-	if err := tacker.Tack(); err != nil {
+	if err := cmd(args...); err != nil {
 		Fatalf(err.Error())
 	}
 }

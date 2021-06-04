@@ -179,10 +179,6 @@ func (p *Page) Generate() error {
 		return fmt.Errorf("unable to load template '%s' when rendering '%s': %s", p.Template, p.Permalink(), err)
 	}
 
-	// using (var writer = File.CreateText(Path.Combine (Tacker.TargetDir + Permalink, "index.html"))) {
-	//     Tacker.FindTemplate (Template).Render (new DictWrapper (this, new RenderContext (this)), writer, Tacker.FindTemplate);
-	// }
-
 	f, err := os.OpenFile(filepath.Join(destDir, "index.html"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
