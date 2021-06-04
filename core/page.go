@@ -164,11 +164,11 @@ func (p *Page) Generate() error {
 
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
-	fmt.Printf("Generating %s\n", p.Name)
-	fmt.Printf(" - permalink: %s\n", p.Permalink())
-	fmt.Printf(" - destdir: %s\n", destDir)
-	fmt.Printf(" - ancestors: %s\n", strings.Join(a, " << "))
-	fmt.Printf(" - siblings: %s\n", strings.Join(s, ", "))
+	p.Tacker.Log("Generating %s", p.Name)
+	p.Tacker.Log(" - permalink: %s\n", p.Permalink())
+	p.Tacker.Log(" - destdir: %s\n", destDir)
+	p.Tacker.Log(" - ancestors: %s\n", strings.Join(a, " << "))
+	p.Tacker.Log(" - siblings: %s\n", strings.Join(s, ", "))
 
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return err
@@ -190,7 +190,7 @@ func (p *Page) Generate() error {
 	}
 
 	for i := range p.Assets {
-		fmt.Printf("Copying ...%s\n", i)
+		p.Tacker.Log("Copying ...%s", i)
 		if err := os.MkdirAll(filepath.Dir(filepath.Join(destDir, i)), 0755); err != nil {
 			return err
 		}

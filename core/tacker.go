@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -26,6 +27,7 @@ type Tacker struct {
 	Metadata   map[string]interface{}
 	Pages      []*Page
 	Navigation []*Page
+	Logger     *log.Logger
 }
 
 // public delegate void LogFn (string format, params object[] args);
@@ -53,6 +55,7 @@ func NewTacker(dir string) (*Tacker, error) {
 
 	t := &Tacker{
 		BaseDir: dir,
+		Logger:  log.New(os.Stdout, "", 0),
 	}
 
 	if err := t.Reload(); err != nil {
@@ -60,6 +63,29 @@ func NewTacker(dir string) (*Tacker, error) {
 	}
 
 	return t, nil
+}
+
+func NewTackerWithArgs(args ...string) (*Tacker, error) {
+	if len(args) > 1 {
+		return nil, errors.New("too many arguments")
+	}
+
+	dir := ""
+	if len(args) == 1 {
+		d, err := filepath.Abs(args[0])
+		if err != nil {
+			return nil, fmt.Errorf("unable to resolve directory %s: %s", args[0], err)
+		}
+		dir = d
+	} else {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("unable to determine working dir: %s", err)
+		}
+		dir = cwd
+	}
+
+	return NewTacker(dir)
 }
 
 func (t *Tacker) Reload() error {
@@ -88,7 +114,10 @@ func (t *Tacker) Reload() error {
 }
 
 func (t *Tacker) Log(format string, args ...interface{}) {
-	fmt.Printf(format+"\n", args...)
+	if t.Logger == nil {
+		return
+	}
+	t.Logger.Printf(format+"\n", args...)
 }
 
 func (t *Tacker) Tack() error {
@@ -129,7 +158,7 @@ func (t *Tacker) Tack() error {
 		// 		Log ("Applying {0} to {1} ...", filter.GetType ().Name, i);
 		// 		filter.Filter (this, i);
 		// 	} else {
-		fmt.Printf("Copying %s\n", strings.TrimPrefix(i, assetDir))
+		t.Log("Copying %s", strings.TrimPrefix(i, assetDir))
 		if err := CopyFile(i, dest); err != nil {
 			return err
 		}
@@ -236,6 +265,7 @@ func ProcessMetadata(file string) (map[string]interface{}, error) {
 	for _, i := range d {
 		delete(res, i)
 	}
+
 	return res, nil
 }
 
