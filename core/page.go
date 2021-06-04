@@ -38,7 +38,7 @@ func NewPage(tacker *Tacker, realPath string) *Page {
 		Tacker:   tacker,
 		DiskPath: realPath,
 		Name:     enumerationRegex.ReplaceAllLiteralString(fn, ""),
-		Floating: enumerationRegex.MatchString(fn),
+		Floating: !enumerationRegex.MatchString(fn),
 	}
 }
 
