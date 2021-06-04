@@ -1,4 +1,4 @@
-package server
+package commands
 
 import (
 	"fmt"
@@ -17,6 +17,10 @@ var noCacheHeaders = map[string]string{
 	"Pragma":        "no-cache",
 }
 
+func init() {
+	RegisterCommand("serve", "Runs a minimal HTTP server", Serve)
+}
+
 func ServeError(w http.ResponseWriter, err error) {
 	w.WriteHeader(500)
 	w.Write([]byte(fmt.Sprintf("Internal Server Error: %s\n", err.Error())))
@@ -32,8 +36,10 @@ func Serve(args ...string) error {
 	var lastBuild time.Time
 	var checkpoint *core.Checkpoint
 	var mutex sync.Mutex
-	log.Println("Listening on :8080...")
-	server := http.FileServer(http.Dir(filepath.Join(tacker.BaseDir, core.TargetDir)))
+
+	htmlDir := filepath.Join(tacker.BaseDir, core.TargetDir)
+	log.Printf("Serving from %s, listening on port 8080 …\n", htmlDir)
+	server := http.FileServer(http.Dir(htmlDir))
 	return http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		mutex.Lock()
 		defer mutex.Unlock()
@@ -59,7 +65,7 @@ func Serve(args ...string) error {
 				}
 				lastBuild = time.Now()
 				checkpoint = newCheckpoint
-				log.Printf("Rebuilt in %s.\n", time.Since(tackStart))
+				log.Printf("Changes detected. Re-tacked in %s.\n", time.Since(tackStart))
 			}
 		}
 

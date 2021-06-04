@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/roblillack/tack/commands"
 )
 
 func Fatalf(format string, args ...interface{}) {
@@ -11,12 +13,12 @@ func Fatalf(format string, args ...interface{}) {
 }
 
 func main() {
-	cmd := Tack
+	cmd := commands.Tack
 	args := []string{}
 
 	if len(os.Args) >= 2 {
 		found := false
-		for _, i := range commands {
+		for _, i := range commands.List {
 			if os.Args[1] == i.Name {
 				cmd = i.Fn
 				found = true
