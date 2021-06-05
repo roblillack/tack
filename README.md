@@ -1,12 +1,21 @@
-# tack [![Build Status](https://secure.travis-ci.org/roblillack/tack.png?branch=master)](http://travis-ci.org/roblillack/tack) [![GoDoc](http://godoc.org/github.com/roblillack/tack?status.png)](http://godoc.org/github.com/roblillack/tack)
+# tack
 
-**tack** is a static site generator for the long run.
+A static site generator for the long run.
+
+![Build](https://github.com/roblillack/tack/actions/workflows/go.yml/badge.svg)
+[![GoDoc](http://pkg.go.dev/github.com/roblillack/tack?status.png)](http://pkg.go.dev/github.com/roblillack/tack)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/roblillack/tack?label=latest%20version)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 The project's goal is to create and maintain a sustainable tool that does the
 (arguably pretty easy) job of filling HTML templates with content well enough
 now and in ten years when you come back to update that minimal website you own.
 
+Website: https://burningsoda.com/software/tack
+
 #### Installation
+
+Download binaries for FreeBSD, Linux, macOS (ARM & Intel), NetBSD, OpenBSD, or Windows from [the release page](https://github.com/roblillack/tack/releases) or install from source (you will need to have Git and Go installed) like this:
 
 ```
 go get github.com/roblillack/tack
@@ -57,7 +66,9 @@ and open your browser at http://localhost:8080/ while working on the site.
 
 Once you're done, copy over the content of `output/` to a hosting service of your choice.
 
-#### Why?
+#### Documentation
+
+Learn more on the [tack website](https://burningsoda.com/software/tack)
 
 #### Features that will not be part of future tack versions
 
