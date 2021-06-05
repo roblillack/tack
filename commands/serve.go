@@ -37,7 +37,7 @@ func Serve(args ...string) error {
 	}
 	tacker.Logger = nil
 
-	var lastBuild time.Time
+	var lastCheck time.Time
 	var checkpoint *core.Checkpoint
 	var mutex sync.Mutex
 
@@ -48,7 +48,7 @@ func Serve(args ...string) error {
 		start := time.Now()
 		mutex.Lock()
 		defer mutex.Unlock()
-		if time.Since(lastBuild) >= 3*time.Second {
+		if time.Since(lastCheck) >= 3*time.Second {
 			rebuild, newCheckpoint, err := tacker.HasChanges(checkpoint)
 			if err != nil {
 				ServeError(w, req, err)
@@ -64,12 +64,12 @@ func Serve(args ...string) error {
 					ServeError(w, req, err)
 					return
 				}
-				if !lastBuild.IsZero() {
+				if !lastCheck.IsZero() {
 					log.Printf("Changes detected. Re-tacked in %s.\n", time.Since(tackStart))
 				}
-				lastBuild = time.Now()
 				checkpoint = newCheckpoint
 			}
+			lastCheck = time.Now()
 		}
 
 		for k, v := range noCacheHeaders {
