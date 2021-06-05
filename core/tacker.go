@@ -53,29 +53,6 @@ func NewTacker(dir string) (*Tacker, error) {
 	return t, nil
 }
 
-func NewTackerWithArgs(args ...string) (*Tacker, error) {
-	if len(args) > 1 {
-		return nil, errors.New("too many arguments")
-	}
-
-	dir := ""
-	if len(args) == 1 {
-		d, err := filepath.Abs(args[0])
-		if err != nil {
-			return nil, fmt.Errorf("unable to resolve directory %s: %s", args[0], err)
-		}
-		dir = d
-	} else {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, fmt.Errorf("unable to determine working dir: %s", err)
-		}
-		dir = cwd
-	}
-
-	return NewTacker(dir)
-}
-
 func (t *Tacker) Reload() error {
 	if err := t.loadSiteMetadata(); err != nil {
 		return err

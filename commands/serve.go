@@ -27,9 +27,12 @@ func ServeError(w http.ResponseWriter, err error) {
 }
 
 func Serve(args ...string) error {
-	tacker, err := core.NewTackerWithArgs(args...)
+	tacker, err := newTackerWithArgs(args...)
 	if err != nil {
 		return err
+	}
+	if err := tacker.Tack(); err != nil {
+		log.Println(err)
 	}
 	tacker.Logger = nil
 
