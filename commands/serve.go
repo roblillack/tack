@@ -21,9 +21,10 @@ func init() {
 	RegisterCommand("serve", "Runs a minimal HTTP server", Serve)
 }
 
-func ServeError(w http.ResponseWriter, err error) {
+func ServeError(w http.ResponseWriter, req *http.Request, err error) {
 	w.WriteHeader(500)
-	w.Write([]byte(fmt.Sprintf("Internal Server Error: %s\n", err.Error())))
+	w.Write([]byte(fmt.Sprintf("Error: %s\n", err.Error())))
+	log.Printf("%s %s://%s%s%s -> ERROR: %s\n", req.Method, "http", req.Host, req.URL.Port(), req.RequestURI, err.Error())
 }
 
 func Serve(args ...string) error {
@@ -44,26 +45,23 @@ func Serve(args ...string) error {
 	log.Printf("Serving from %s, listening on port 8080 …\n", htmlDir)
 	server := http.FileServer(http.Dir(htmlDir))
 	return http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		start := time.Now()
 		mutex.Lock()
 		defer mutex.Unlock()
-		log.Printf("%s %s://%s%s%s\n", req.Method, "http", req.Host, req.URL.Port(), req.RequestURI)
 		if time.Since(lastBuild) >= 3*time.Second {
 			rebuild, newCheckpoint, err := tacker.HasChanges(checkpoint)
 			if err != nil {
-				log.Println(err)
-				ServeError(w, err)
+				ServeError(w, req, err)
 				return
 			}
 			if rebuild {
 				tackStart := time.Now()
 				if err := tacker.Reload(); err != nil {
-					log.Println(err)
-					ServeError(w, err)
+					ServeError(w, req, err)
 					return
 				}
 				if err := tacker.Tack(); err != nil {
-					log.Println(err)
-					ServeError(w, err)
+					ServeError(w, req, err)
 					return
 				}
 				if !lastBuild.IsZero() {
@@ -79,5 +77,6 @@ func Serve(args ...string) error {
 		}
 
 		server.ServeHTTP(w, req)
+		log.Printf("%s %s://%s%s%s (%s)\n", req.Method, "http", req.Host, req.URL.Port(), req.RequestURI, time.Since(start))
 	}))
 }
