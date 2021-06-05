@@ -42,7 +42,7 @@ func FindFiles(dir string, extensions ...string) ([]string, error) {
 func FindDirsWithFiles(dir string, extensions ...string) ([]string, error) {
 	result := []string{}
 	walk := func(path string, entry fs.DirEntry, err error) error {
-		if !entry.IsDir() {
+		if !entry.IsDir() || path == dir {
 			return nil
 		}
 

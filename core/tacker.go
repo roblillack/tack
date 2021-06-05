@@ -30,19 +30,7 @@ type Tacker struct {
 	Logger     *log.Logger
 }
 
-// public delegate void LogFn (string format, params object[] args);
-// public LogFn Logger { get; set; }
-
-// Markdown markdown;
-// IDictionary<string, AssetFilter> assetFilters;
-
 func NewTacker(dir string) (*Tacker, error) {
-	// markdown = new Markdown ();
-	// markdown.AutoHyperlink = true;
-
-	// assetFilters = new Dictionary<string, AssetFilter> ();
-	// assetFilters.Add ("less", new LessFilter ());
-
 	mustache.AllowMissingVariables = true
 
 	if !DirExists(dir) {
@@ -153,16 +141,11 @@ func (t *Tacker) Tack() error {
 		if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
 			return err
 		}
-		// 	if (assetFilters.ContainsKey (Path.GetExtension (i).Replace (".", ""))) {
-		// 		var filter = assetFilters [Path.GetExtension (i).Replace (".", "")];
-		// 		Log ("Applying {0} to {1} ...", filter.GetType ().Name, i);
-		// 		filter.Filter (this, i);
-		// 	} else {
+
 		t.Log("Copying %s", strings.TrimPrefix(i, assetDir))
 		if err := CopyFile(i, dest); err != nil {
 			return err
 		}
-		// 	}
 	}
 
 	return nil
@@ -196,53 +179,6 @@ func (t *Tacker) findAllPages() error {
 	t.Pages = all
 	return nil
 }
-
-// 		IEnumerable<string> FindAllAssets ()
-// 		{
-// 			return Files.EnumerateAllFiles (AssetDir);
-// 		}
-
-// 		public IDictionary<string, object> ProcessMetadata (string file)
-// 		{
-// 			foreach (var ext in METADATA_LANGS) {
-// 				if (file.EndsWith ("." + ext)) {
-// 					var map = new Dictionary<string, object> ();
-// 					var stream = new YamlStream ();
-// 					stream.Load (new StreamReader (file));
-
-// 					foreach (var doc in stream.Documents) {
-// 						if (doc.RootNode is YamlMappingNode) {
-// 							var seq = doc.RootNode as YamlMappingNode;
-// 							foreach (var node in seq.Children) {
-// 								var key = node.Key as YamlScalarNode;
-// 								object val = node.Value;
-// 								if (val is YamlScalarNode && (val as YamlScalarNode).Style == YamlDotNet.Core.ScalarStyle.Literal) {
-// 									val = markdown.Transform (val.ToString ());
-// 								}
-// 								map.Add (key.Style == YamlDotNet.Core.ScalarStyle.Plain ?
-// 								         key.Value.Substring (1) : key.Value,
-// 								         val);
-// 							}
-// 						}
-// 					}
-// 					return map;
-// 				}
-// 			}
-
-// 			// Not a known meta-data format
-// 			return null;
-// 		}
-
-// 		public string ProcessMarkup (string file)
-// 		{
-// 			foreach (var ext in MARKUP_LANGS) {
-// 				if (Path.GetExtension (file).Equals ("." + ext)) {
-// 					return markdown.Transform (File.ReadAllText (file));
-// 				}
-// 			}
-
-// 			return null;
-// 		}
 
 func ProcessMetadata(file string) (map[string]interface{}, error) {
 	r, err := os.Open(file)

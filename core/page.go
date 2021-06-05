@@ -94,11 +94,20 @@ func (p *Page) Init() error {
 	p.Assets = map[string]struct{}{}
 
 	metadata := map[string]interface{}{}
-	allFiles, err := filepath.Glob(filepath.Join(p.DiskPath, "*.*"))
+	allFiles, err := FindFiles(p.DiskPath)
 	if err != nil {
 		return err
 	}
+nextFile:
 	for _, filename := range allFiles {
+		for _, i := range p.Tacker.Pages {
+			if i == p || strings.HasPrefix(p.DiskPath, i.DiskPath+string(os.PathSeparator)) {
+				continue
+			}
+			if strings.HasPrefix(filename, i.DiskPath+string(os.PathSeparator)) {
+				continue nextFile
+			}
+		}
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
 		base := BasenameWithoutExtension(filename)
 		if ext == "yml" || ext == "yaml" {
@@ -128,18 +137,7 @@ func (p *Page) Init() error {
 			p.Assets[strings.TrimPrefix(filename, p.DiskPath)] = struct{}{}
 		}
 	}
-	// 			var pagePaths = new HashSet<string> ();
-	// 			foreach (var page in Tacker.Pages) {
-	// 				pagePaths.Add (page.DiskPath);
-	// 			}
 
-	// 			foreach (var subdir in Files.EnumerateAllSubdirs (DiskPath)) {
-	// 				if (!pagePaths.Contains (subdir)) {
-	// 					assets.AddAll (Files.GetAllFiles (subdir));
-	// 				}
-	// 			}
-
-	// 			Assets = new HashSet<string> (assets.Select (x => x.Replace (DiskPath, "")));
 	p.Variables = metadata
 	p.inited = true
 	return nil
@@ -165,10 +163,10 @@ func (p *Page) Generate() error {
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
 	p.Tacker.Log("Generating %s", p.Name)
-	p.Tacker.Log(" - permalink: %s\n", p.Permalink())
-	p.Tacker.Log(" - destdir: %s\n", destDir)
-	p.Tacker.Log(" - ancestors: %s\n", strings.Join(a, " << "))
-	p.Tacker.Log(" - siblings: %s\n", strings.Join(s, ", "))
+	p.Tacker.Log(" - permalink: %s", p.Permalink())
+	p.Tacker.Log(" - destdir: %s", destDir)
+	p.Tacker.Log(" - ancestors: %s", strings.Join(a, " << "))
+	p.Tacker.Log(" - siblings: %s", strings.Join(s, ", "))
 
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return err
