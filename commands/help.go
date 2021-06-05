@@ -9,7 +9,7 @@ func init() {
 func Help(args ...string) error {
 	fmt.Println(`tack.
 
-usage: tack <verb> [parameters]
+usage: tack [<verb>] [parameters]
 
 Available verbs:`)
 	for _, i := range List {

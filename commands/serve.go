@@ -43,7 +43,7 @@ func Serve(args ...string) error {
 	return http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		mutex.Lock()
 		defer mutex.Unlock()
-		log.Println(req.RequestURI)
+		log.Printf("%s %s://%s%s%s\n", req.Method, "http", req.Host, req.URL.Port(), req.RequestURI)
 		if time.Since(lastBuild) >= 3*time.Second {
 			rebuild, newCheckpoint, err := tacker.HasChanges(checkpoint)
 			if err != nil {
@@ -63,9 +63,11 @@ func Serve(args ...string) error {
 					ServeError(w, err)
 					return
 				}
+				if !lastBuild.IsZero() {
+					log.Printf("Changes detected. Re-tacked in %s.\n", time.Since(tackStart))
+				}
 				lastBuild = time.Now()
 				checkpoint = newCheckpoint
-				log.Printf("Changes detected. Re-tacked in %s.\n", time.Since(tackStart))
 			}
 		}
 
