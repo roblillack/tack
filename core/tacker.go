@@ -19,8 +19,8 @@ const TargetDir = "output"
 const AssetDir = "public"
 
 var TemplateExtensions = []string{"mustache"}
-var MetadataExtensions = []string{"yml"}
-var MarkupExtensions = []string{"mkd"}
+var MetadataExtensions = []string{"yaml", "yml"}
+var MarkupExtensions = []string{"md", "mkd"}
 
 type Tacker struct {
 	BaseDir    string
@@ -106,7 +106,7 @@ func (t *Tacker) Tack() error {
 	assetDir := filepath.Join(t.BaseDir, AssetDir)
 	targetDir := filepath.Join(t.BaseDir, TargetDir)
 	assets, err := FindFiles(assetDir)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	for _, i := range assets {
