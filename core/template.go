@@ -16,12 +16,19 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 		return nil
 	}
 
-	return map[string]interface{}{
-		"permalink": p.Permalink(),
-		"slug":      p.Name,
-		"name":      strings.Replace(strings.ToTitle(p.Name), "-", " ", -1),
-		"current":   ctx != nil && ctx == p,
+	data := map[string]interface{}{}
+
+	data["name"] = strings.Replace(strings.ToTitle(p.Name), "-", " ", -1)
+
+	for k, v := range p.Variables {
+		data[k] = v
 	}
+
+	data["permalink"] = p.Permalink()
+	data["slug"] = p.Name
+	data["current"] = ctx != nil && ctx == p
+
+	return data
 }
 
 func PageListValues(pages []*Page, ctx *Page) []map[string]interface{} {
@@ -36,10 +43,6 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 	ctx := map[string]interface{}{}
 
 	for k, v := range page.Tacker.Metadata {
-		ctx[k] = v
-	}
-
-	for k, v := range page.Variables {
 		ctx[k] = v
 	}
 

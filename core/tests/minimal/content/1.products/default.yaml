@@ -1,0 +1,9 @@
+title: Our Products
+products: [{
+name: ABC,
+desc: This is the best product in the world.
+},
+{
+name: XYZ,
+desc: This is the second best product in the world.
+}]

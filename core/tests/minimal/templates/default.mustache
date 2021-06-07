@@ -1,1 +1,20 @@
-Hello {{who}}!
+<html>
+    <meta>
+        <title>{{title}}</title>
+    </meta>
+
+    <body>
+        <nav>
+        {{#navigation}}
+        <a href="{{permalink}}">{{name}}</a>
+        {{/navigation}}
+        </nav>
+        <ul>
+        {{#siblings}}
+        <li>{{name}} ({{permalink}})</li>
+        {{/siblings}}
+        </ul>
+
+        {{{body}}}
+    </body>
+</html>

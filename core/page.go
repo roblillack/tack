@@ -21,7 +21,6 @@ type Page struct {
 	DiskPath string
 	Tacker   *Tacker
 	Floating bool
-	Root     bool
 
 	inited bool
 	// first available after call to Init()
@@ -35,24 +34,21 @@ type Page struct {
 func NewPage(tacker *Tacker, realPath string) *Page {
 	fn := filepath.Base(realPath)
 
-	root := realPath == filepath.Join(tacker.BaseDir, ContentDir)
-	name := enumerationRegex.ReplaceAllLiteralString(fn, "")
-	if root {
-		name = "index"
-	}
-
 	return &Page{
 		Tacker:   tacker,
 		DiskPath: realPath,
-		Name:     name,
-		Root:     root,
+		Name:     enumerationRegex.ReplaceAllLiteralString(fn, ""),
 		Floating: !enumerationRegex.MatchString(fn),
 	}
 }
 
+func (p *Page) Root() bool {
+	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) || p.Name == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
+}
+
 func (p *Page) Permalink() string {
 	if p.Parent == nil {
-		if p.Root {
+		if p.Root() {
 			return "/"
 		}
 		return "/" + p.Name
@@ -63,7 +59,7 @@ func (p *Page) Permalink() string {
 
 func (p *Page) TargetDir() []string {
 	if p.Parent == nil {
-		if p.Root {
+		if p.Root() {
 			return []string{}
 		}
 		return []string{p.Name}
