@@ -13,6 +13,9 @@ import (
 func FindFiles(dir string, extensions ...string) ([]string, error) {
 	result := []string{}
 	walk := func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
 		if entry.IsDir() || !entry.Type().IsRegular() {
 			return nil
 		}
@@ -29,9 +32,6 @@ func FindFiles(dir string, extensions ...string) ([]string, error) {
 				return nil
 			}
 		}
-		if err != nil {
-			return err
-		}
 		result = append(result, path)
 		return nil
 	}
@@ -42,12 +42,12 @@ func FindFiles(dir string, extensions ...string) ([]string, error) {
 func FindDirsWithFiles(dir string, extensions ...string) ([]string, error) {
 	result := []string{}
 	walk := func(path string, entry fs.DirEntry, err error) error {
-		if !entry.IsDir() || path == dir {
-			return nil
-		}
-
 		if err != nil {
 			return err
+		}
+
+		if !entry.IsDir() {
+			return nil
 		}
 
 		if len(extensions) == 0 {
