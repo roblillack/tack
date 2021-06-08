@@ -65,21 +65,9 @@ func AssertDirEquals(t *testing.T, expected string, result string) {
 		if err != nil {
 			t.Errorf("unable to read file %s: %s", fn, err)
 		}
-		assert.Equal(t, TrimNewLineAtTheEnd(expContent), TrimNewLineAtTheEnd(resContent),
+		assert.Equal(t, expContent, resContent,
 			"file content does not match for %s", fn)
 	}
-}
-
-func TrimNewLineAtTheEnd(raw []byte) []byte {
-	if len(raw) == 0 {
-		return raw
-	}
-
-	if raw[len(raw)-1] == 0x0a {
-		return raw[0 : len(raw)-1]
-	}
-
-	return raw
 }
 
 func StringSliceEqual(a []string, b []string) bool {

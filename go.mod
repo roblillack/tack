@@ -9,3 +9,5 @@ require (
 	github.com/yuin/goldmark v1.3.7
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace github.com/cbroglie/mustache => ../mustache

@@ -1,1 +1,71 @@
-Hello World!
+<html>
+    <meta>
+        <title>Welcome!</title>
+        <style>
+body {
+    font-family: sans-serif;
+    margin: 5rem 10%;
+    line-height: 1.5;
+}
+nav>b {
+    background-color: yellow;
+}
+.footer {
+    font-size: 0.8rem;
+    color: gray;
+    border-top: 0.05rem solid gray;
+    margin-top: 3rem;
+}
+        </style>
+    </meta>
+
+    <body>
+        <nav>
+        
+        <b>Home</b>
+        <a href="/products">Products</a>
+        
+        <a href="/help">Help</a>
+        
+        <a href="/about">About</a>
+        
+        </nav>
+
+        <h1>Minimal Website</h1>
+<p>This is a minimal website which showcases the following features:</p>
+<ul>
+<li>
+<p>Using content pages</p>
+</li>
+<li>
+<p>Using templates</p>
+</li>
+<li>
+<p>Using page variables</p>
+</li>
+<li>
+<p>Using static assets (CSS)</p>
+</li>
+<li>
+<p>Index page is part of the navigation</p>
+<p>This means, that the page available at <code>/</code> is not the <em>parent</em> of the pages at <code>/products</code> and <code>/about</code> but at the same level.</p>
+</li>
+<li>
+<p>Renaming pages</p>
+<p>By default the <code>name</code> of a page is derived by title-casing the <code>slug</code> which is taken from the folder name). You can override this name, by
+setting a <code>name</code> page variable, which is done in <code>default.yaml</code> here, to
+call the index page <code>Home</code>.</p>
+</li>
+</ul>
+
+
+
+        <div class="footer">
+            Siblings of this page are:
+            About
+            Help
+            Products
+        </div>
+
+    </body>
+</html>
