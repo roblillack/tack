@@ -18,7 +18,7 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 
 	data := map[string]interface{}{}
 
-	data["name"] = strings.Replace(strings.ToTitle(p.Name), "-", " ", -1)
+	data["name"] = strings.Replace(strings.Title(p.Name), "-", " ", -1)
 
 	for k, v := range p.Variables {
 		data[k] = v
@@ -55,13 +55,5 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 	ctx["navigation"] = PageListValues(page.Tacker.Navigation, page)
 	ctx["ancestors"] = PageListValues(page.Ancestors(), page)
 
-	str, err := t.Template.Render(ctx)
-	if err != nil {
-		return err
-	}
-	if _, err := io.WriteString(w, str); err != nil {
-		return err
-	}
-
-	return nil
+	return t.Template.FRender(w, ctx)
 }
