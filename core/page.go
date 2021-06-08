@@ -92,7 +92,7 @@ func (p *Page) Init() error {
 	}
 
 	sort.Slice(siblings, func(i, j int) bool {
-		return strings.Compare(siblings[i].Name, siblings[j].Name) == -1
+		return strings.Compare(filepath.Base(siblings[i].DiskPath), filepath.Base(siblings[j].DiskPath)) == -1
 	})
 	p.Siblings = siblings
 	p.Assets = map[string]struct{}{}
