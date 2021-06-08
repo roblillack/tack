@@ -8,12 +8,14 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/renderer/html"
 )
 
 var enumerationRegex = regexp.MustCompile(`^[0-9]+\.\s*`)
+var dateRegex = regexp.MustCompile(`^([0-9]{4}-[0-9]{2}-[0-9]{2})[\.\-]\s*`)
 
 type Page struct {
 	// available directly after construction.
@@ -21,11 +23,14 @@ type Page struct {
 	DiskPath string
 	Tacker   *Tacker
 	Floating bool
+	Date     time.Time
 
 	inited bool
 	// first available after call to Init()
 	Parent    *Page
 	Siblings  []*Page
+	Children  []*Page
+	Posts     []*Page
 	Assets    map[string]struct{}
 	Variables map[string]interface{}
 	Template  string
@@ -34,12 +39,25 @@ type Page struct {
 func NewPage(tacker *Tacker, realPath string) *Page {
 	fn := filepath.Base(realPath)
 
-	return &Page{
+	page := &Page{
 		Tacker:   tacker,
 		DiskPath: realPath,
-		Name:     enumerationRegex.ReplaceAllLiteralString(fn, ""),
-		Floating: !enumerationRegex.MatchString(fn),
+		Name:     fn,
+		Floating: true,
 	}
+
+	if enumerationRegex.MatchString(fn) {
+		page.Floating = false
+		page.Name = enumerationRegex.ReplaceAllLiteralString(fn, "")
+	} else if m := dateRegex.FindStringSubmatch(fn); len(m) == 2 {
+		if d, err := time.Parse("2006-01-02", m[1]); err == nil {
+			page.Name = dateRegex.ReplaceAllLiteralString(fn, "")
+			page.Date = d
+			page.Floating = false
+		}
+	}
+
+	return page
 }
 
 func (p *Page) Root() bool {
@@ -81,6 +99,8 @@ func (p *Page) Ancestors() []*Page {
 func (p *Page) Init() error {
 	parent := filepath.Dir(p.DiskPath)
 	siblings := []*Page{}
+	children := []*Page{}
+	posts := []*Page{}
 
 	for _, i := range p.Tacker.Pages {
 		if i.DiskPath == parent {
@@ -89,12 +109,27 @@ func (p *Page) Init() error {
 		if filepath.Dir(i.DiskPath) == parent && i != p && !i.Floating {
 			siblings = append(siblings, i)
 		}
+		if filepath.Dir(i.DiskPath) == p.DiskPath {
+			if i.Date.IsZero() {
+				children = append(children, i)
+			} else {
+				posts = append(posts, i)
+			}
+		}
 	}
 
 	sort.Slice(siblings, func(i, j int) bool {
 		return strings.Compare(filepath.Base(siblings[i].DiskPath), filepath.Base(siblings[j].DiskPath)) == -1
 	})
 	p.Siblings = siblings
+	sort.Slice(children, func(i, j int) bool {
+		return strings.Compare(filepath.Base(children[i].DiskPath), filepath.Base(children[j].DiskPath)) == -1
+	})
+	p.Children = children
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].Date.After(posts[j].Date)
+	})
+	p.Posts = posts
 	p.Assets = map[string]struct{}{}
 
 	metadata := map[string]interface{}{}

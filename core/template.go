@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cbroglie/mustache"
+	"github.com/roblillack/mustache"
 )
 
 type Template struct {
@@ -27,6 +27,9 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 	data["permalink"] = p.Permalink()
 	data["slug"] = p.Name
 	data["current"] = ctx != nil && ctx == p
+	if !p.Date.IsZero() {
+		data["date"] = p.Date.Format("2006-01-02")
+	}
 
 	return data
 }
@@ -52,8 +55,10 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 
 	ctx["parent"] = PageValues(page.Parent, page)
 	ctx["siblings"] = PageListValues(page.Siblings, page)
+	ctx["children"] = PageListValues(page.Children, page)
 	ctx["navigation"] = PageListValues(page.Tacker.Navigation, page)
 	ctx["ancestors"] = PageListValues(page.Ancestors(), page)
+	ctx["posts"] = PageListValues(page.Posts, page)
 
 	return t.Template.FRender(w, ctx)
 }

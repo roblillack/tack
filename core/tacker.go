@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cbroglie/mustache"
+	"github.com/roblillack/mustache"
 	"gopkg.in/yaml.v2"
 )
 
@@ -145,13 +145,28 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 }
 
 func (t *Tacker) findAllPages() error {
+	pagesPath := filepath.Join(t.BaseDir, ContentDir)
 	all := []*Page{}
-	m, err := FindDirsWithFiles(filepath.Join(t.BaseDir, ContentDir), append(MarkupExtensions, MetadataExtensions...)...)
+	seen := map[string]struct{}{}
+	m, err := FindDirsWithFiles(pagesPath, append(MarkupExtensions, MetadataExtensions...)...)
 	if err != nil {
 		return err
 	}
 	for _, pageDir := range m {
-		all = append(all, NewPage(t, pageDir))
+		// Root index page without a subdir? Add it now and don't walk up paths further!
+		if pageDir == pagesPath {
+			all = append(all, NewPage(t, pageDir))
+			seen[pageDir] = struct{}{}
+			continue
+		}
+
+		// backfill all ancestors, even if they do not contain sufficient files itself ...
+		for p := pageDir; p != pagesPath; p = filepath.Dir(p) {
+			if _, ok := seen[p]; !ok {
+				all = append(all, NewPage(t, p))
+				seen[p] = struct{}{}
+			}
+		}
 	}
 	t.Pages = all
 	return nil
