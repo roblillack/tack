@@ -36,8 +36,11 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 
 func PageListValues(pages []*Page, ctx *Page) []map[string]interface{} {
 	r := []map[string]interface{}{}
-	for _, i := range pages {
-		r = append(r, PageValues(i, ctx))
+	for idx, i := range pages {
+		data := PageValues(i, ctx)
+		data["first"] = idx == 0
+		data["last"] = idx == len(pages)-1
+		r = append(r, data)
 	}
 	return r
 }
