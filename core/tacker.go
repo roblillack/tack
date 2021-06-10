@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/roblillack/mustache"
+	"github.com/cbroglie/mustache"
 	"gopkg.in/yaml.v2"
 )
 

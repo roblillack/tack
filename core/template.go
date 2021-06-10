@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/roblillack/mustache"
+	"github.com/cbroglie/mustache"
 )
 
 type Template struct {
