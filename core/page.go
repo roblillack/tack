@@ -122,7 +122,7 @@ func (p *Page) Init() error {
 			siblingsAndMe = append(siblingsAndMe, i)
 		}
 		if filepath.Dir(i.DiskPath) == p.DiskPath {
-			if i.Date.IsZero() {
+			if i.Date.IsZero() && !i.Floating {
 				children = append(children, i)
 			} else {
 				posts = append(posts, i)
