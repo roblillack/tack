@@ -2,6 +2,32 @@
 
 ## next
 
+## v1.1.0 - 2021-06-10
+
+- New or improved features:
+
+  - Allow the root index page to be defined with metadata and markup directly in `content/`. #19
+  - Add support for empty pages (no metadata or markup defined) if they have non-empty children. #20
+  - Add support for `children` to iterate non-floating child pages. #16
+  - Add support for `posts` to iterate all child pages marked with a date. #18
+  - Add support for `menu` sections to iterate all `siblings` and the current page (only for non-floating pages). #17
+  - For each entry of page collections (`children`, `menu`, `navigation`, `posts`, `siblings`) add `first` and `last` boolean values that can be used to construct better separators. #21
+  - Add a man-page. #9
+
+- Bugfixes:
+
+  - Fix not being able to read `.md` or `.yaml` files instead of `.mkd` and `.yml`. #22
+  - Fix title casing. #3
+  - Fix iterating `siblings` in correct order. #4
+  - Fix crash for non-existent asset directories. #5
+  - Fix rendering section context. #8
+  - Fix rendering non-false value sections. #23
+
+- Misc changes:
+
+  - Introduce a set of integration tests: This are small, selfcontained websites that are automatically re-generated and the result is matched against the expected output. #13
+  - Additionally, introduce a tiny set of directory layout tests. #13
+
 ## v1.0.0 - 2021-06-06
 
 - BREAKING: Support for CSS filters (ie. LESS support) was dropped!
