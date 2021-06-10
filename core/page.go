@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -38,6 +39,9 @@ type Page struct {
 
 func NewPage(tacker *Tacker, realPath string) *Page {
 	fn := filepath.Base(realPath)
+	if realPath == filepath.Join(tacker.BaseDir, ContentDir) {
+		fn = "index"
+	}
 
 	page := &Page{
 		Tacker:   tacker,
@@ -72,7 +76,7 @@ func (p *Page) Permalink() string {
 		return "/" + p.Name
 	}
 
-	return p.Parent.Permalink() + "/" + p.Name
+	return path.Join(p.Parent.Permalink(), p.Name)
 }
 
 func (p *Page) TargetDir() []string {
@@ -214,6 +218,12 @@ func (p *Page) Generate() error {
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
 	p.Tacker.Log("Generating %s", p.Name)
+	par := "-"
+	if p.Parent != nil {
+		par = p.Parent.DiskPath
+	}
+	p.Tacker.Log(" - disk path: %s", p.DiskPath)
+	p.Tacker.Log(" - parent: %s", par)
 	p.Tacker.Log(" - permalink: %s", p.Permalink())
 	p.Tacker.Log(" - destdir: %s", destDir)
 	p.Tacker.Log(" - ancestors: %s", strings.Join(a, " << "))

@@ -30,6 +30,128 @@ func TestTacker(t *testing.T) {
 	}
 }
 
+type LayoutTest struct {
+	Paths      []string
+	Permalinks []string
+}
+
+var layoutTests = []LayoutTest{
+	{
+		Paths: []string{
+			"index/content.yml",
+			"page-a/bla.md",
+			"page-b/blub.yml",
+		},
+		Permalinks: []string{
+			"/",
+			"/page-a",
+			"/page-b",
+		},
+	},
+	{
+		Paths: []string{
+			"content.yml",
+			"page-a/bla.md",
+			"page-b/blub.yml",
+		},
+		Permalinks: []string{
+			"/",
+			"/page-a",
+			"/page-b",
+		},
+	},
+	{
+		Paths: []string{
+			"page-a/bla.md",
+			"page-b/blub.yml",
+		},
+		Permalinks: []string{
+			"/",
+			"/page-a",
+			"/page-b",
+		},
+	},
+	{
+		Paths: []string{
+			"2.a/x.md",
+			"1.b/x.yaml",
+		},
+		Permalinks: []string{"/", "/a", "/b"},
+	},
+	{
+		Paths: []string{
+			"0.index/x.mkd",
+			"1.b/x.yaml",
+			"2.a/x.md",
+		},
+		Permalinks: []string{"/", "/a", "/b"},
+	},
+	{
+		Paths: []string{
+			"1981-10-08-a/x.md",
+		},
+		Permalinks: []string{
+			"/",
+			"/a",
+		},
+	},
+	{
+		Paths: []string{
+			"posts/1981-10-08-a/x.md",
+		},
+		Permalinks: []string{
+			"/",
+			"/posts",
+			"/posts/a",
+		},
+	},
+}
+
+func TestDirectoryLayouts(t *testing.T) {
+	for _, i := range layoutTests {
+		base, err := os.MkdirTemp(os.TempDir(), "tacktest")
+		assert.NoError(t, err)
+		assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir), 0755))
+		assert.NoError(t, os.MkdirAll(filepath.Join(base, TemplateDir), 0755))
+		for _, p := range i.Paths {
+			if strings.HasSuffix(p, "/") {
+				assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir, p), 0755))
+			} else {
+				assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir, filepath.Dir(p)), 0755))
+				assert.NoError(t, os.WriteFile(filepath.Join(base, ContentDir, p), []byte{}, 0644))
+			}
+		}
+		tacker, err := NewTacker(base)
+		assert.NoError(t, err)
+		assert.Len(t, tacker.Pages, len(i.Permalinks))
+		for _, p := range tacker.Pages {
+			assert.Contains(t, i.Permalinks, p.Permalink())
+		}
+		assert.NoError(t, os.RemoveAll(base))
+	}
+}
+
+func TestDirectoryLayoutErrors(t *testing.T) {
+	for _, i := range [][]string{
+		{"x.md", "index/x.md", "a/x.md"},
+	} {
+		base, err := os.MkdirTemp(os.TempDir(), "tacktest")
+		assert.NoError(t, err)
+		assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir), 0755))
+		assert.NoError(t, os.MkdirAll(filepath.Join(base, TemplateDir), 0755))
+		for _, p := range i {
+			if strings.HasSuffix(p, "/") {
+				assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir, p), 0755))
+			} else {
+				assert.NoError(t, os.MkdirAll(filepath.Join(base, ContentDir, filepath.Dir(p)), 0755))
+				assert.NoError(t, os.WriteFile(filepath.Join(base, ContentDir, p), []byte{}, 0644))
+			}
+		}
+		_, err = NewTacker(base)
+		assert.Error(t, err)
+		assert.NoError(t, os.RemoveAll(base))
+	}
+}
 func AssertDirEquals(t *testing.T, expected string, result string) {
 	expList, err := FindFiles(expected)
 	if err != nil {

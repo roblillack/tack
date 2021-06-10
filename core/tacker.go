@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -146,26 +147,35 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 
 func (t *Tacker) findAllPages() error {
 	pagesPath := filepath.Join(t.BaseDir, ContentDir)
-	all := []*Page{}
-	seen := map[string]struct{}{}
+
 	m, err := FindDirsWithFiles(pagesPath, append(MarkupExtensions, MetadataExtensions...)...)
 	if err != nil {
 		return err
 	}
-	for _, pageDir := range m {
-		// Root index page without a subdir? Add it now and don't walk up paths further!
-		if pageDir == pagesPath {
-			all = append(all, NewPage(t, pageDir))
-			seen[pageDir] = struct{}{}
-			continue
-		}
 
+	all := []*Page{}
+	seen := map[string]struct{}{}
+	rootPage := ""
+
+	for _, pageDir := range m {
 		// backfill all ancestors, even if they do not contain sufficient files itself ...
-		for p := pageDir; p != pagesPath; p = filepath.Dir(p) {
-			if _, ok := seen[p]; !ok {
-				all = append(all, NewPage(t, p))
-				seen[p] = struct{}{}
+		for p := pageDir; strings.HasPrefix(p+string(os.PathSeparator), pagesPath); p = filepath.Dir(p) {
+			if _, visited := seen[p]; visited {
+				continue
 			}
+			page := NewPage(t, p)
+			if page.Root() {
+				if rootPage != "" {
+					if p == pageDir {
+						return fmt.Errorf("multiple root pages detected: %s <-> %s", rootPage, p)
+					} else {
+						continue
+					}
+				}
+				rootPage = p
+			}
+			all = append(all, page)
+			seen[p] = struct{}{}
 		}
 	}
 	t.Pages = all
@@ -180,7 +190,7 @@ func ProcessMetadata(file string) (map[string]interface{}, error) {
 	defer r.Close()
 
 	res := map[string]interface{}{}
-	if err := yaml.NewDecoder(r).Decode(&res); err != nil {
+	if err := yaml.NewDecoder(r).Decode(&res); err != nil && !errors.Is(err, io.EOF) {
 		return nil, err
 	}
 	d := []string{}
