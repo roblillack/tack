@@ -57,9 +57,10 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 	}
 
 	ctx["parent"] = PageValues(page.Parent, page)
-	ctx["siblings"] = PageListValues(page.Siblings, page)
+	ctx["siblings"] = PageListValues(page.Siblings(), page)
 	ctx["children"] = PageListValues(page.Children, page)
 	ctx["navigation"] = PageListValues(page.Tacker.Navigation, page)
+	ctx["menu"] = PageListValues(page.SiblingsAndMe, page)
 	ctx["ancestors"] = PageListValues(page.Ancestors(), page)
 	ctx["posts"] = PageListValues(page.Posts, page)
 

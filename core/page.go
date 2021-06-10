@@ -27,13 +27,13 @@ type Page struct {
 
 	inited bool
 	// first available after call to Init()
-	Parent    *Page
-	Siblings  []*Page
-	Children  []*Page
-	Posts     []*Page
-	Assets    map[string]struct{}
-	Variables map[string]interface{}
-	Template  string
+	Parent        *Page
+	SiblingsAndMe []*Page
+	Children      []*Page
+	Posts         []*Page
+	Assets        map[string]struct{}
+	Variables     map[string]interface{}
+	Template      string
 }
 
 func NewPage(tacker *Tacker, realPath string) *Page {
@@ -96,9 +96,21 @@ func (p *Page) Ancestors() []*Page {
 	return r
 }
 
+func (p *Page) Siblings() []*Page {
+	r := []*Page{}
+
+	for _, i := range p.SiblingsAndMe {
+		if i != p {
+			r = append(r, i)
+		}
+	}
+
+	return r
+}
+
 func (p *Page) Init() error {
 	parent := filepath.Dir(p.DiskPath)
-	siblings := []*Page{}
+	siblingsAndMe := []*Page{}
 	children := []*Page{}
 	posts := []*Page{}
 
@@ -106,8 +118,8 @@ func (p *Page) Init() error {
 		if i.DiskPath == parent {
 			p.Parent = i
 		}
-		if filepath.Dir(i.DiskPath) == parent && i != p && !i.Floating {
-			siblings = append(siblings, i)
+		if filepath.Dir(i.DiskPath) == parent && !i.Floating {
+			siblingsAndMe = append(siblingsAndMe, i)
 		}
 		if filepath.Dir(i.DiskPath) == p.DiskPath {
 			if i.Date.IsZero() {
@@ -118,10 +130,10 @@ func (p *Page) Init() error {
 		}
 	}
 
-	sort.Slice(siblings, func(i, j int) bool {
-		return strings.Compare(filepath.Base(siblings[i].DiskPath), filepath.Base(siblings[j].DiskPath)) == -1
+	sort.Slice(siblingsAndMe, func(i, j int) bool {
+		return strings.Compare(filepath.Base(siblingsAndMe[i].DiskPath), filepath.Base(siblingsAndMe[j].DiskPath)) == -1
 	})
-	p.Siblings = siblings
+	p.SiblingsAndMe = siblingsAndMe
 	sort.Slice(children, func(i, j int) bool {
 		return strings.Compare(filepath.Base(children[i].DiskPath), filepath.Base(children[j].DiskPath)) == -1
 	})
@@ -195,7 +207,7 @@ func (p *Page) Generate() error {
 	}
 
 	s := []string{}
-	for _, i := range p.Siblings {
+	for _, i := range p.SiblingsAndMe {
 		s = append(s, i.Name)
 	}
 
