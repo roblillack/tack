@@ -4,3 +4,4 @@
 *.pidb
 test-results
 *.userprefs
+/core/tests/*/output

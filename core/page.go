@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/renderer/html"
 )
 
 var enumerationRegex = regexp.MustCompile(`^[0-9]+\.\s*`)
+var dateRegex = regexp.MustCompile(`^([0-9]{4}-[0-9]{2}-[0-9]{2})[\.\-]\s*`)
 
 type Page struct {
 	// available directly after construction.
@@ -21,41 +24,64 @@ type Page struct {
 	DiskPath string
 	Tacker   *Tacker
 	Floating bool
+	Date     time.Time
 
 	inited bool
 	// first available after call to Init()
-	Parent    *Page
-	Siblings  []*Page
-	Assets    map[string]struct{}
-	Variables map[string]interface{}
-	Template  string
+	Parent        *Page
+	SiblingsAndMe []*Page
+	Children      []*Page
+	Posts         []*Page
+	Assets        map[string]struct{}
+	Variables     map[string]interface{}
+	Template      string
 }
 
 func NewPage(tacker *Tacker, realPath string) *Page {
 	fn := filepath.Base(realPath)
+	if realPath == filepath.Join(tacker.BaseDir, ContentDir) {
+		fn = "index"
+	}
 
-	return &Page{
+	page := &Page{
 		Tacker:   tacker,
 		DiskPath: realPath,
-		Name:     enumerationRegex.ReplaceAllLiteralString(fn, ""),
-		Floating: !enumerationRegex.MatchString(fn),
+		Name:     fn,
+		Floating: true,
 	}
+
+	if enumerationRegex.MatchString(fn) {
+		page.Floating = false
+		page.Name = enumerationRegex.ReplaceAllLiteralString(fn, "")
+	} else if m := dateRegex.FindStringSubmatch(fn); len(m) == 2 {
+		if d, err := time.Parse("2006-01-02", m[1]); err == nil {
+			page.Name = dateRegex.ReplaceAllLiteralString(fn, "")
+			page.Date = d
+			page.Floating = false
+		}
+	}
+
+	return page
+}
+
+func (p *Page) Root() bool {
+	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) || p.Name == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
 }
 
 func (p *Page) Permalink() string {
 	if p.Parent == nil {
-		if p.Name == "index" {
+		if p.Root() {
 			return "/"
 		}
 		return "/" + p.Name
 	}
 
-	return p.Parent.Permalink() + "/" + p.Name
+	return path.Join(p.Parent.Permalink(), p.Name)
 }
 
 func (p *Page) TargetDir() []string {
 	if p.Parent == nil {
-		if p.Name == "index" {
+		if p.Root() {
 			return []string{}
 		}
 		return []string{p.Name}
@@ -74,23 +100,52 @@ func (p *Page) Ancestors() []*Page {
 	return r
 }
 
+func (p *Page) Siblings() []*Page {
+	r := []*Page{}
+
+	for _, i := range p.SiblingsAndMe {
+		if i != p {
+			r = append(r, i)
+		}
+	}
+
+	return r
+}
+
 func (p *Page) Init() error {
 	parent := filepath.Dir(p.DiskPath)
-	siblings := []*Page{}
+	siblingsAndMe := []*Page{}
+	children := []*Page{}
+	posts := []*Page{}
 
 	for _, i := range p.Tacker.Pages {
 		if i.DiskPath == parent {
 			p.Parent = i
 		}
-		if filepath.Dir(i.DiskPath) == parent && i != p && !i.Floating {
-			siblings = append(siblings, i)
+		if filepath.Dir(i.DiskPath) == parent && !i.Floating {
+			siblingsAndMe = append(siblingsAndMe, i)
+		}
+		if filepath.Dir(i.DiskPath) == p.DiskPath {
+			if i.Date.IsZero() && !i.Floating {
+				children = append(children, i)
+			} else {
+				posts = append(posts, i)
+			}
 		}
 	}
 
-	sort.Slice(siblings, func(i, j int) bool {
-		return strings.Compare(siblings[i].Name, siblings[j].Name) == -1
+	sort.Slice(siblingsAndMe, func(i, j int) bool {
+		return strings.Compare(filepath.Base(siblingsAndMe[i].DiskPath), filepath.Base(siblingsAndMe[j].DiskPath)) == -1
 	})
-	p.Siblings = siblings
+	p.SiblingsAndMe = siblingsAndMe
+	sort.Slice(children, func(i, j int) bool {
+		return strings.Compare(filepath.Base(children[i].DiskPath), filepath.Base(children[j].DiskPath)) == -1
+	})
+	p.Children = children
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].Date.After(posts[j].Date)
+	})
+	p.Posts = posts
 	p.Assets = map[string]struct{}{}
 
 	metadata := map[string]interface{}{}
@@ -156,13 +211,19 @@ func (p *Page) Generate() error {
 	}
 
 	s := []string{}
-	for _, i := range p.Siblings {
+	for _, i := range p.SiblingsAndMe {
 		s = append(s, i.Name)
 	}
 
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
 	p.Tacker.Log("Generating %s", p.Name)
+	par := "-"
+	if p.Parent != nil {
+		par = p.Parent.DiskPath
+	}
+	p.Tacker.Log(" - disk path: %s", p.DiskPath)
+	p.Tacker.Log(" - parent: %s", par)
 	p.Tacker.Log(" - permalink: %s", p.Permalink())
 	p.Tacker.Log(" - destdir: %s", destDir)
 	p.Tacker.Log(" - ancestors: %s", strings.Join(a, " << "))

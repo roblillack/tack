@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,8 +20,8 @@ const TargetDir = "output"
 const AssetDir = "public"
 
 var TemplateExtensions = []string{"mustache"}
-var MetadataExtensions = []string{"yml"}
-var MarkupExtensions = []string{"mkd"}
+var MetadataExtensions = []string{"yaml", "yml"}
+var MarkupExtensions = []string{"md", "mkd"}
 
 type Tacker struct {
 	BaseDir    string
@@ -106,7 +107,7 @@ func (t *Tacker) Tack() error {
 	assetDir := filepath.Join(t.BaseDir, AssetDir)
 	targetDir := filepath.Join(t.BaseDir, TargetDir)
 	assets, err := FindFiles(assetDir)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	for _, i := range assets {
@@ -145,13 +146,37 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 }
 
 func (t *Tacker) findAllPages() error {
-	all := []*Page{}
-	m, err := FindDirsWithFiles(filepath.Join(t.BaseDir, ContentDir), append(MarkupExtensions, MetadataExtensions...)...)
+	pagesPath := filepath.Join(t.BaseDir, ContentDir)
+
+	m, err := FindDirsWithFiles(pagesPath, append(MarkupExtensions, MetadataExtensions...)...)
 	if err != nil {
 		return err
 	}
+
+	all := []*Page{}
+	seen := map[string]struct{}{}
+	rootPage := ""
+
 	for _, pageDir := range m {
-		all = append(all, NewPage(t, pageDir))
+		// backfill all ancestors, even if they do not contain sufficient files itself ...
+		for p := pageDir; strings.HasPrefix(p+string(os.PathSeparator), pagesPath); p = filepath.Dir(p) {
+			if _, visited := seen[p]; visited {
+				continue
+			}
+			page := NewPage(t, p)
+			if page.Root() {
+				if rootPage != "" {
+					if p == pageDir {
+						return fmt.Errorf("multiple root pages detected: %s <-> %s", rootPage, p)
+					} else {
+						continue
+					}
+				}
+				rootPage = p
+			}
+			all = append(all, page)
+			seen[p] = struct{}{}
+		}
 	}
 	t.Pages = all
 	return nil
@@ -165,7 +190,7 @@ func ProcessMetadata(file string) (map[string]interface{}, error) {
 	defer r.Close()
 
 	res := map[string]interface{}{}
-	if err := yaml.NewDecoder(r).Decode(&res); err != nil {
+	if err := yaml.NewDecoder(r).Decode(&res); err != nil && !errors.Is(err, io.EOF) {
 		return nil, err
 	}
 	d := []string{}
