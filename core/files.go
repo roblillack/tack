@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 func FindFiles(dir string, extensions ...string) ([]string, error) {
@@ -106,18 +105,4 @@ func BasenameWithoutExtension(path string) string {
 func DirExists(path string) bool {
 	s, err := os.Stat(path)
 	return err == nil && s.IsDir()
-}
-
-func LatestModTime(path string, curr *time.Time) error {
-	stat, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	ts := stat.ModTime()
-	if ts.After(*curr) {
-		*curr = ts
-	}
-
-	return nil
 }

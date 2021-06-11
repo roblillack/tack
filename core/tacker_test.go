@@ -105,6 +105,10 @@ var layoutTests = []LayoutTest{
 			"/posts/a",
 		},
 	},
+	{
+		// Assets only? No pages, but okay ...
+		Paths: []string{"a.png", "b.png"},
+	},
 }
 
 func TestDirectoryLayouts(t *testing.T) {
@@ -133,7 +137,11 @@ func TestDirectoryLayouts(t *testing.T) {
 
 func TestDirectoryLayoutErrors(t *testing.T) {
 	for _, i := range [][]string{
+		// multiple root pages
 		{"x.md", "index/x.md", "a/x.md"},
+		{"0.index/x.md", "1.index/x.md"},
+		// same page, different templates
+		{"a.yaml", "b.yaml"},
 	} {
 		base, err := os.MkdirTemp(os.TempDir(), "tacktest")
 		assert.NoError(t, err)
