@@ -2,8 +2,9 @@
 
 A static site generator for the long run.
 
-![Build](https://github.com/roblillack/tack/actions/workflows/go.yml/badge.svg)
-[![GoDoc](http://pkg.go.dev/github.com/roblillack/tack?status.png)](http://pkg.go.dev/github.com/roblillack/tack)
+[![Build Status](https://github.com/roblillack/tack/actions/workflows/go.yml/badge.svg)](https://github.com/roblillack/tack/actions/workflows/go.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/roblillack/tack.svg)](https://pkg.go.dev/github.com/roblillack/tack)
+[![Coverage Status](https://coveralls.io/repos/github/roblillack/tack/badge.svg)](https://coveralls.io/github/tack/gockl)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/roblillack/tack?label=latest%20version)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
