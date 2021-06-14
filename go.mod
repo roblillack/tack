@@ -8,6 +8,7 @@ require (
 	github.com/jandelgado/gcov2lcov v1.0.5 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/yuin/goldmark v1.3.7
+	github.com/yuin/goldmark-meta v1.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
 
