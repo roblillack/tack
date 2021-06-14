@@ -208,11 +208,14 @@ func ProcessMetadata(file string) (map[string]interface{}, error) {
 }
 
 func (t *Tacker) loadSiteMetadata() error {
-	files, err := filepath.Glob(filepath.Join(t.BaseDir, "*.yml"))
+	files, err := filepath.Glob(filepath.Join(t.BaseDir, "*.*"))
 	if err != nil {
 		return err
 	}
 	for _, i := range files {
+		if ext := strings.ToLower(filepath.Ext(i)); ext != ".yaml" && ext != ".yml" {
+			continue
+		}
 		md, err := ProcessMetadata(i)
 		if err != nil {
 			return err
