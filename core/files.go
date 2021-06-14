@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-func FindFiles(dir string, extensions ...string) ([]string, error) {
+// FindFiles returns a slice containing the absolute path of _all_ regular files below
+// the given directory.
+func FindFiles(dir string) ([]string, error) {
 	result := []string{}
 	walk := func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -18,19 +20,7 @@ func FindFiles(dir string, extensions ...string) ([]string, error) {
 		if entry.IsDir() || !entry.Type().IsRegular() {
 			return nil
 		}
-		if len(extensions) > 0 {
-			ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), ".")
-			valid := false
-			for _, i := range extensions {
-				if ext == i {
-					valid = true
-					break
-				}
-			}
-			if !valid {
-				return nil
-			}
-		}
+
 		result = append(result, path)
 		return nil
 	}
