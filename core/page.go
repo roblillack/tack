@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/yuin/goldmark"
+	meta "github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 )
 
@@ -183,11 +185,15 @@ nextFile:
 				return err
 			}
 			buf := &bytes.Buffer{}
-			parser := goldmark.New(goldmark.WithRendererOptions(html.WithUnsafe()))
-			if err := parser.Convert(markdown, buf); err != nil {
+			engine := goldmark.New(goldmark.WithRendererOptions(html.WithUnsafe()), goldmark.WithExtensions(meta.Meta))
+			context := parser.NewContext()
+			if err := engine.Convert(markdown, buf, parser.WithContext(context)); err != nil {
 				return err
 			}
 			metadata[base] = buf.String()
+			for k, v := range meta.Get(context) {
+				metadata[k] = v
+			}
 		} else {
 			p.Assets[strings.TrimPrefix(filename, p.DiskPath)] = struct{}{}
 		}
