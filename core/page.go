@@ -149,8 +149,8 @@ func (p *Page) Init() error {
 	})
 	p.Posts = posts
 	p.Assets = map[string]struct{}{}
+	p.Variables = map[string]interface{}{}
 
-	metadata := map[string]interface{}{}
 	allFiles, err := FindFiles(p.DiskPath)
 	if err != nil {
 		return err
@@ -168,16 +168,13 @@ nextFile:
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
 		base := BasenameWithoutExtension(filename)
 		if ext == "yml" || ext == "yaml" {
-			if p.Template != "" {
-				return fmt.Errorf("multiple templates requested! %s vs. %s", p.Template, base)
-			}
-			p.Template = base
 			md, err := ProcessMetadata(filename)
 			if err != nil {
 				return fmt.Errorf("unable to process metadata for %s: %w", p.Permalink(), err)
 			}
-			for k, v := range md {
-				metadata[k] = v
+			md["template"] = base
+			if err := p.addVariables(md); err != nil {
+				return err
 			}
 		} else if ext == "md" || ext == "mkd" {
 			markdown, err := os.ReadFile(filename)
@@ -190,17 +187,32 @@ nextFile:
 			if err := engine.Convert(markdown, buf, parser.WithContext(context)); err != nil {
 				return err
 			}
-			metadata[base] = buf.String()
-			for k, v := range meta.Get(context) {
-				metadata[k] = v
+			if err := p.addVariables(meta.Get(context)); err != nil {
+				return err
 			}
+
+			p.Variables[base] = buf.String()
 		} else {
 			p.Assets[strings.TrimPrefix(filename, p.DiskPath)] = struct{}{}
 		}
 	}
 
-	p.Variables = metadata
 	p.inited = true
+	return nil
+}
+
+func (p *Page) addVariables(md map[string]interface{}) error {
+	for k, v := range md {
+		if k == "template" {
+			if p.Template != "" {
+				return fmt.Errorf("multiple templates requested! %s vs. %s", p.Template, v)
+			}
+			p.Template = fmt.Sprint(v)
+			continue
+		}
+		p.Variables[k] = v
+	}
+
 	return nil
 }
 
