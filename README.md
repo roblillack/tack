@@ -13,7 +13,8 @@ The project's goal is to create and maintain a sustainable tool that does the
 (arguably pretty easy) job of filling HTML templates with content well enough
 now and in ten years when you come back to update that minimal website you own.
 
-Website: https://burningsoda.com/software/tack
+Website: https://burningsoda.com/software/tack \
+Manpage: https://github.com/roblillack/tack/blob/master/tack.1.md
 
 #### Installation
 

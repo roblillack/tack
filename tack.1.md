@@ -1,6 +1,6 @@
 % TACK(1)
 % Robert Lillack
-% June 2021
+% July 2021
 
 # NAME
 
@@ -29,7 +29,7 @@ The tool is completely self-contained and has no runtime dependencies. This ensu
 
 # SITE DIRECTORY
 
-The optional _SITEDIR_ arguments refers to a directory that contains the sources
+The optional _SITEDIR_ argument refers to a directory that contains the sources
 of the website project that should be built by tack.
 
 If this argument is not specified, tack uses the current working directory.
@@ -40,6 +40,43 @@ A valid _SITEDIR_ contains:
 - `templates` subdirectory with at least a single template file (`*.mustache`)
 - Optionally: a `public` subdirectory with static files
 - Optionally: a `site.yaml` metadata file to define some site variables
+
+# PAGE TYPES
+
+A page is added to the site by creating a directory somewhere below `content/`. This page directory needs to contain at least a single metadata or markup file. Based on the directory name, tack differentiates between three types of pages:
+
+Regular (or ordered) pages
+: A page that will show up in the **menu**, **navigation**, **siblings** variables so it can be iterated over. The order of pages on the same level is determined by the position given as part of the directory name, ie. _001-about-us_, or _2.products_
+
+Floating pages
+: A page which is not part of the navigation structure of the site. So, if you don't see a need for automatically created menus or you want to exclude individual pages from the menu, use floating pages. Pages are made floating by naming their directory without an enumeration or date prefix.
+
+Posts
+: A post is simple a page directory with a name prefixed with a date in the `yyyy-mm-dd` form. All posts contained in certain page are accessible using the **posts** list of their parent page. Posts will not show up in the **menu**, **navigation**, or **siblings** variables. Example page names are: _2012-08-25.first-release_ and _2021-06-06-tack-version-one_.
+
+# TEMPLATES
+
+All `*.mustache` files below _SITEDIR_/templates can be used to create HTML page output by filling them with page content. All templates are expected to be written in the Mustache template language.
+
+The default template used to generate a page is called _default.template_. To use a different template, you can choose to:
+
+- Create a metadata file in the page directory.
+
+  The basename of said file will be regarded as the template name. If, for example, a metadata file like _SITEDIR_/content/about-us/simple.yaml exists, the page /about-us will be rendered using the template from _SITEDIR_/templates/simple.mustache
+
+- Specify a `template` variable as part of the YAML frontmatter in any of the pages' markup files.
+
+  If, for example, the markup file _SITEDIR_/content/about-us/body.md contains frontmatter like this:
+
+  ```
+  ---
+  template: simple
+  ---
+
+  # This is the actual Markdown content
+  ```
+
+  The same template from _SITEDIR_/templates/simple.mustache  would be used.
 
 # PAGE VARIABLES
 
@@ -55,10 +92,13 @@ Next to the user-specified variables, these per-page ones are automatically gene
 : Last part of the directory name, stripped of any enumeration prefixes.
 
 `name`
-: A titlecased version of slug.
+: A titlecased version of slug. This page variable can be overwritten using a YAML metadata file or YAML frontmatter.
 
 `current`
 : Boolean to signify if the referenced page is the one currently being rendered (useful to build active elements in navigation menus).
+
+`date`
+: (Only if this page is a post) Publishing date of the current page in the form `yyyy-mm-dd`.
 
 `first`
 : (Only if this page is being iterated over as part of a list) Boolean to signify if the referenced page is the first one of the list.
@@ -93,7 +133,7 @@ Additionally to the page variables listed above, when rendering a page, these va
 
 # EXIT STATUS
 
-Tack returns a non-zero exit code if tacking the website was not successful due to being unable to read or process any of the input files or if the `output` directory cannot be written to.
+Tack returns a non-zero exit code if tacking the website was not successful due to being unable to read or process any of the input files or if the _output_ directory cannot be written to.
 
 # BUGS
 

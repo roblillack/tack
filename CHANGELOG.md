@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## next
+## v1.2.0 - 2021-07-04
+
+- New or improved features:
+  - Page variables and the template to use can now be specified using YAML frontmatter inside Markdown files. #14
+  - Improve manpage a bit.
+- Bugfixes:
+  - Fix reading site metadata from files with uppercase file ending. #25.
 
 ## v1.1.0 - 2021-06-10
 
