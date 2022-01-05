@@ -22,6 +22,7 @@ var dateRegex = regexp.MustCompile(`^([0-9]{4}-[0-9]{2}-[0-9]{2})[\.\-]\s*`)
 
 type Page struct {
 	// available directly after construction.
+	Slug     string
 	Name     string
 	DiskPath string
 	Tacker   *Tacker
@@ -37,6 +38,7 @@ type Page struct {
 	Assets        map[string]struct{}
 	Variables     map[string]interface{}
 	Template      string
+	addTagPages   bool
 }
 
 func NewPage(tacker *Tacker, realPath string) *Page {
@@ -48,26 +50,28 @@ func NewPage(tacker *Tacker, realPath string) *Page {
 	page := &Page{
 		Tacker:   tacker,
 		DiskPath: realPath,
-		Name:     fn,
+		Slug:     fn,
 		Floating: true,
 	}
 
 	if enumerationRegex.MatchString(fn) {
 		page.Floating = false
-		page.Name = enumerationRegex.ReplaceAllLiteralString(fn, "")
+		page.Slug = enumerationRegex.ReplaceAllLiteralString(fn, "")
 	} else if m := dateRegex.FindStringSubmatch(fn); len(m) == 2 {
 		if d, err := time.Parse("2006-01-02", m[1]); err == nil {
-			page.Name = dateRegex.ReplaceAllLiteralString(fn, "")
+			page.Slug = dateRegex.ReplaceAllLiteralString(fn, "")
 			page.Date = d
 			page.Floating = false
 		}
 	}
 
+	page.Name = strings.Replace(strings.Title(page.Slug), "-", " ", -1)
+
 	return page
 }
 
 func (p *Page) Root() bool {
-	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) || p.Name == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
+	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) || p.Slug == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
 }
 
 func (p *Page) Permalink() string {
@@ -75,10 +79,10 @@ func (p *Page) Permalink() string {
 		if p.Root() {
 			return "/"
 		}
-		return "/" + p.Name
+		return "/" + p.Slug
 	}
 
-	return path.Join(p.Parent.Permalink(), p.Name)
+	return path.Join(p.Parent.Permalink(), p.Slug)
 }
 
 func (p *Page) TargetDir() []string {
@@ -86,10 +90,10 @@ func (p *Page) TargetDir() []string {
 		if p.Root() {
 			return []string{}
 		}
-		return []string{p.Name}
+		return []string{p.Slug}
 	}
 
-	return append(p.Parent.TargetDir(), p.Name)
+	return append(p.Parent.TargetDir(), TagSlug(p.Slug))
 }
 
 func (p *Page) Ancestors() []*Page {
@@ -114,6 +118,10 @@ func (p *Page) Siblings() []*Page {
 	return r
 }
 
+func (p *Page) Post() bool {
+	return !p.Date.IsZero()
+}
+
 func (p *Page) Init() error {
 	parent := filepath.Dir(p.DiskPath)
 	siblingsAndMe := []*Page{}
@@ -124,13 +132,13 @@ func (p *Page) Init() error {
 		if i.DiskPath == parent {
 			p.Parent = i
 		}
-		if filepath.Dir(i.DiskPath) == parent && !i.Floating {
+		if filepath.Dir(i.DiskPath) == parent && !i.Floating && !i.Post() {
 			siblingsAndMe = append(siblingsAndMe, i)
 		}
 		if filepath.Dir(i.DiskPath) == p.DiskPath {
-			if i.Date.IsZero() && !i.Floating {
+			if !i.Post() && !i.Floating {
 				children = append(children, i)
-			} else {
+			} else if i.Post() {
 				posts = append(posts, i)
 			}
 		}
@@ -210,6 +218,22 @@ func (p *Page) addVariables(md map[string]interface{}) error {
 			p.Template = fmt.Sprint(v)
 			continue
 		}
+		if k == "tags" {
+			if bv, ok := v.(bool); ok && bv {
+				p.addTagPages = true
+				continue
+			}
+
+			if tags, ok := v.([]interface{}); ok {
+				for _, i := range tags {
+					s, ok := i.(string)
+					if s == "" || !ok {
+						continue
+					}
+					p.Tacker.addTag(s, p)
+				}
+			}
+		}
 		p.Variables[k] = v
 	}
 
@@ -225,17 +249,17 @@ func (p *Page) Generate() error {
 
 	a := []string{}
 	for _, i := range p.Ancestors() {
-		a = append(a, i.Name)
+		a = append(a, i.Slug)
 	}
 
 	s := []string{}
 	for _, i := range p.SiblingsAndMe {
-		s = append(s, i.Name)
+		s = append(s, i.Slug)
 	}
 
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
-	p.Tacker.Log("Generating %s", p.Name)
+	p.Tacker.Log("Generating %s", p.Slug)
 	par := "-"
 	if p.Parent != nil {
 		par = p.Parent.DiskPath
