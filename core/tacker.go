@@ -102,15 +102,17 @@ func (t *Tacker) Reload() error {
 			return fmt.Errorf("multiple tag index pages detected: %s <-> %s", t.TagIndex.DiskPath, i.DiskPath)
 		}
 		t.TagIndex = i
-		for tagSlug, taggedPages := range t.Tags {
-			tag := t.Tag(tagSlug)
+		for slug, taggedPages := range t.Tags {
+			tag := t.Tag(slug)
 
 			vars := map[string]interface{}{}
 			for k, v := range i.Variables {
+				if k == "name" {
+					continue
+				}
 				vars[k] = v
 			}
 			vars["count"] = tag.Count
-			vars["slug"] = tag.Slug
 
 			page := &Page{
 				inited:    true,
@@ -228,7 +230,7 @@ func (t *Tacker) Tag(name string) Tag {
 	slug := TagSlug(name)
 
 	if t.Tags == nil || t.Tags[slug] == nil {
-		return Tag{Name: name, Count: 0, Permalink: ""}
+		return Tag{Slug: slug, Name: name, Count: 0, Permalink: ""}
 	}
 	link := ""
 	if t.TagIndex != nil {
