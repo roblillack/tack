@@ -42,18 +42,25 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 
 func PageListValues(pages []*Page, ctx *Page) []map[string]interface{} {
 	r := []map[string]interface{}{}
-	var year interface{}
+	var year int
 	var month string
 	for idx, i := range pages {
 		data := PageValues(i, ctx)
 		data["first"] = idx == 0
 		data["last"] = idx == len(pages)-1
 		if i.Post() {
-			data["first_in_year"] = year != data["year"]
+			var next *Page
+			if idx+1 < len(pages) {
+				next = pages[idx+1]
+			}
 			m := i.Date.Format("2006-January")
+			data["first_in_year"] = year != i.Date.Year()
 			data["first_in_month"] = month != m
-			year = data["year"]
+			year = i.Date.Year()
 			month = m
+
+			data["last_in_year"] = next == nil || year != next.Date.Year()
+			data["last_in_month"] = next == nil || month != next.Date.Format("2006-January")
 		}
 		r = append(r, data)
 	}
