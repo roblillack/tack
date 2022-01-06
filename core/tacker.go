@@ -105,9 +105,18 @@ func (t *Tacker) Reload() error {
 		for slug, taggedPages := range t.Tags {
 			tag := t.Tag(slug)
 
+			template := ""
+			if i.Template != "" {
+				template = i.Template
+			}
+
 			vars := map[string]interface{}{}
 			for k, v := range i.Variables {
 				if k == "name" {
+					continue
+				}
+				if s, ok := v.(string); ok && k == "template_tags" {
+					template = s
 					continue
 				}
 				vars[k] = v
@@ -123,7 +132,7 @@ func (t *Tacker) Reload() error {
 				Floating:  true,
 				Parent:    i,
 				Posts:     taggedPages,
-				Template:  i.Template,
+				Template:  template,
 				Variables: vars,
 			}
 			t.Pages = append(t.Pages, page)
