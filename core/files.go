@@ -96,3 +96,22 @@ func DirExists(path string) bool {
 	s, err := os.Stat(path)
 	return err == nil && s.IsDir()
 }
+
+func FirstFileWithExtension(dir string, basename string, extensions ...string) string {
+	if extensions == nil {
+		extensions = []string{""}
+	}
+
+	for _, ext := range extensions {
+		fn := filepath.Join(dir, basename)
+		if ext != "" {
+			fn = fn + "." + ext
+		}
+		s, err := os.Stat(fn)
+		if err == nil && !s.IsDir() {
+			return fn
+		}
+	}
+
+	return ""
+}

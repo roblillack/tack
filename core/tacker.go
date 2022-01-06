@@ -19,7 +19,7 @@ const TemplateDir = "templates"
 const TargetDir = "output"
 const AssetDir = "public"
 
-var TemplateExtensions = []string{"mustache"}
+var TemplateExtensions = []string{"mustache", "mu", "stache"}
 var MetadataExtensions = []string{"yaml", "yml"}
 var MarkupExtensions = []string{"md", "mkd"}
 
@@ -134,10 +134,24 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 		name = "default"
 	}
 
-	tpl, err := mustache.ParseFilePartials(filepath.Join(t.BaseDir, TemplateDir, name+".mustache"), &mustache.FileProvider{
+	fn := FirstFileWithExtension(filepath.Join(t.BaseDir, TemplateDir), name, TemplateExtensions...)
+	if fn == "" {
+		return nil, fmt.Errorf("Template '%s' not found", name)
+	}
+
+	provider := &mustache.FileProvider{
 		Paths:      []string{filepath.Join(t.BaseDir, TemplateDir)},
-		Extensions: []string{".mustache"},
-	})
+		Extensions: []string{},
+	}
+	for _, i := range TemplateExtensions {
+		if i == "" {
+			provider.Extensions = append(provider.Extensions, i)
+		} else {
+			provider.Extensions = append(provider.Extensions, "."+i)
+		}
+	}
+
+	tpl, err := mustache.ParseFilePartials(fn, provider)
 	if err != nil {
 		return nil, err
 	}

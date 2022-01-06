@@ -1,0 +1,1 @@
+This text file justs exists to test the asset copying functionality.

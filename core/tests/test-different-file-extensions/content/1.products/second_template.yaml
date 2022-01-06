@@ -1,0 +1,10 @@
+title: Our Products
+body: <h1>Product Portfolio</h1>
+products: [{
+name: ABC,
+desc: This is the best product in the world.
+},
+{
+name: XYZ,
+desc: This is the second best product in the world.
+}]
