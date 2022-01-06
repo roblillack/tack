@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/cbroglie/mustache"
 	"gopkg.in/yaml.v2"
@@ -35,6 +36,7 @@ type Tacker struct {
 	TagIndex    *Page
 	Logger      *log.Logger
 	DebugLogger *log.Logger
+	BuildTime   time.Time
 }
 
 func NewTacker(dir string) (*Tacker, error) {
@@ -162,6 +164,7 @@ func (t *Tacker) Debug(format string, args ...interface{}) {
 }
 
 func (t *Tacker) Tack() error {
+	t.BuildTime = time.Now()
 	t.Log("Tacking up %s (%d pages)", t.BaseDir, len(t.Pages))
 
 	if _, err := os.Stat(filepath.Join(t.BaseDir, TargetDir)); err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -173,7 +176,6 @@ func (t *Tacker) Tack() error {
 	}
 
 	for _, page := range t.Pages {
-		t.Debug("%s => %s (template: %s)", page.Permalink(), page.Slug, page.Template)
 		if err := page.Generate(); err != nil {
 			return err
 		}

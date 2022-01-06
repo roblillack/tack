@@ -310,7 +310,7 @@ func (p *Page) Generate() error {
 				continue
 			}
 
-			p.Tacker.Log(" - rendering %s", fn)
+			p.Tacker.Debug(" - rendering %s", fn)
 			tpl, err := p.Tacker.FindTemplate(templateName)
 			if err != nil {
 				return fmt.Errorf("unable to load template '%s' for extra file '%s' when rendering '%s': %s", s, fn, p.Permalink(), err)
