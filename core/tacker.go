@@ -265,6 +265,7 @@ func (t *Tacker) Tag(name string) Tag {
 	for name, count := range t.TagNames[slug] {
 		if count > bestCount {
 			bestName = name
+			bestCount = count
 		}
 	}
 
