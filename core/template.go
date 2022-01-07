@@ -123,7 +123,7 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 	ctx["menu"] = PageListValues(page.SiblingsAndMe, page)
 	ctx["ancestors"] = PageListValues(page.Ancestors(), page)
 
-	if !page.Post() && !page.addTagPages {
+	if !page.Post() && (!page.addTagPages || len(page.Posts) > 0) {
 		posts := page.Posts
 		if len(posts) == 0 && page.Parent != nil && len(page.Parent.Posts) > 0 {
 			posts = page.Parent.Posts
