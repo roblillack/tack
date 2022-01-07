@@ -56,5 +56,14 @@ func newTackerWithArgs(args ...string) (*core.Tacker, error) {
 		dir = cwd
 	}
 
-	return core.NewTacker(dir)
+	t, err := core.NewTacker(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	if !DebugMode {
+		t.DebugLogger = nil
+	}
+
+	return t, nil
 }

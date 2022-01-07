@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	"github.com/roblillack/tack/commands"
+	"github.com/roblillack/tack/core"
 )
 
 func Fatalf(format string, args ...interface{}) {
@@ -16,19 +18,25 @@ func main() {
 	cmd := commands.Tack
 	args := []string{}
 
-	if len(os.Args) >= 2 {
+	flag.Parse()
+
+	if len(flag.Args()) >= 1 {
 		found := false
 		for _, i := range commands.List {
-			if os.Args[1] == i.Name {
+			if flag.Arg(0) == i.Name {
 				cmd = i.Fn
 				found = true
 				break
 			}
 		}
 		if found {
-			args = os.Args[2:]
+			args = flag.Args()[1:]
+		} else if core.DirExists(flag.Arg(0)) {
+			args = flag.Args()
 		} else {
-			args = os.Args[1:]
+			fmt.Fprintf(os.Stderr, "Not a known verb or site directory: %s\n\n", flag.Arg(0))
+			_ = commands.Help()
+			os.Exit(1)
 		}
 	}
 

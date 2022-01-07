@@ -259,17 +259,17 @@ func (p *Page) Generate() error {
 
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
-	p.Tacker.Log("Generating %s", p.Slug)
+	p.Tacker.Debug("Generating %s", p.Slug)
 	par := "-"
 	if p.Parent != nil {
 		par = p.Parent.DiskPath
 	}
-	p.Tacker.Log(" - disk path: %s", p.DiskPath)
-	p.Tacker.Log(" - parent: %s", par)
-	p.Tacker.Log(" - permalink: %s", p.Permalink())
-	p.Tacker.Log(" - destdir: %s", destDir)
-	p.Tacker.Log(" - ancestors: %s", strings.Join(a, " << "))
-	p.Tacker.Log(" - siblings: %s", strings.Join(s, ", "))
+	p.Tacker.Debug(" - disk path: %s", p.DiskPath)
+	p.Tacker.Debug(" - parent: %s", par)
+	p.Tacker.Debug(" - permalink: %s", p.Permalink())
+	p.Tacker.Debug(" - destdir: %s", destDir)
+	p.Tacker.Debug(" - ancestors: %s", strings.Join(a, " << "))
+	p.Tacker.Debug(" - siblings: %s", strings.Join(s, ", "))
 
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return err
@@ -291,7 +291,7 @@ func (p *Page) Generate() error {
 	}
 
 	for i := range p.Assets {
-		p.Tacker.Log("Copying ...%s", i)
+		p.Tacker.Debug("Copying ...%s", i)
 		if err := os.MkdirAll(filepath.Dir(filepath.Join(destDir, i)), 0755); err != nil {
 			return err
 		}
