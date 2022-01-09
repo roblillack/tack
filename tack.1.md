@@ -8,7 +8,7 @@ tack - a static site generator for the long run
 
 # SYNOPSIS
 
-**tack** [*ACTION*] [*SITEDIR*]
+**tack** [-d] [*ACTION*] [*SITEDIR*]
 
 # DESCRIPTION
 
@@ -26,6 +26,11 @@ The tool is completely self-contained and has no runtime dependencies. This ensu
 
 **help**
 : Display a friendly help message.
+
+# OPTIONAL FLAGS
+
+**-d**
+: Debug mode. Enabling this function will output more information while tacking pages to ease debugging.
 
 # SITE DIRECTORY
 
