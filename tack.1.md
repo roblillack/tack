@@ -1,6 +1,6 @@
 % TACK(1)
 % Robert Lillack
-% July 2021
+% January 2022
 
 # NAME
 
@@ -45,20 +45,22 @@ A valid _SITEDIR_ contains:
 
 A page is added to the site by creating a directory somewhere below `content/`. This page directory needs to contain at least a single metadata or markup file. Based on the directory name, tack differentiates between three types of pages:
 
-Regular (or ordered) pages
-: A page that will show up in the **menu**, **navigation**, **siblings** variables so it can be iterated over. The order of pages on the same level is determined by the position given as part of the directory name, ie. _001-about-us_, or _2.products_
-
 Floating pages
 : A page which is not part of the navigation structure of the site. So, if you don't see a need for automatically created menus or you want to exclude individual pages from the menu, use floating pages. Pages are made floating by naming their directory without an enumeration or date prefix.
 
+Ordered pages
+: A page that will show up in the **menu**, **navigation**, **siblings** variables so it can be iterated over. The order of pages on the same level is determined by the position given as part of the directory name, ie. _001-about-us_, or _2.products_
+
 Posts
-: A post is simple a page directory with a name prefixed with a date in the `yyyy-mm-dd` form. All posts contained in certain page are accessible using the **posts** list of their parent page. Posts will not show up in the **menu**, **navigation**, or **siblings** variables. Example page names are: _2012-08-25.first-release_ and _2021-06-06-tack-version-one_.
+: A post is simply a page directory with a name prefixed with a date in the `yyyy-mm-dd` form. All posts contained in certain page are accessible using the **posts** list of their parent page. Posts will not show up in the **menu**, **navigation**, or **siblings** variables. Example page names are: _2012-08-25.first-release_ and _2021-06-06-tack-version-one_.
+
+Additinally, tack might automatically create “tag pages” as children of a floating or ordered page which is configured to be the “tag index”. See TAGGING POSTS below.
 
 # TEMPLATES
 
-All `*.mustache` files below _SITEDIR_/templates can be used to create HTML page output by filling them with page content. All templates are expected to be written in the Mustache template language.
+All `*.mustache` (or, optionally, `*.stache` or `*.mu`) files below _SITEDIR_/templates can be used to create HTML page output by filling them with page content. All templates are expected to be written in the Mustache template language.
 
-The default template used to generate a page is called _default.template_. To use a different template, you can choose to:
+The default template used to generate a page is called _default_. To use a different template, you can choose to:
 
 - Create a metadata file in the page directory.
 
@@ -76,7 +78,7 @@ The default template used to generate a page is called _default.template_. To us
   # This is the actual Markdown content
   ```
 
-  The same template from _SITEDIR_/templates/simple.mustache  would be used.
+  The same template from _SITEDIR_/templates/simple.mustache would be used.
 
 # PAGE VARIABLES
 
@@ -114,22 +116,76 @@ Additionally to the page variables listed above, when rendering a page, these va
 : An object detailing the parent page (giving the variables listed above), if the current page is not a top-level one.
 
 `siblings`
-: List of all sibling pages.
+: List of all ordered pages which are a sibling of the current one.
 
 `children`
 : List of all child pages.
 
 `posts`
-: List of all child pages whose directory name starts with `yyyy-mm-dd`.
+: List of post pages which are either a child a sibling. Only available to floating and ordered pages.
 
 `ancestors`
 : List of all ancestor pages.
 
 `navigation`
-: List of all toplevel pages to allow for building navigation menus.
+: List of all toplevel ordered pages to allow for building navigation menus.
 
 `menu`
-: List of all pages on the same level (siblings + current page) to allow for building navigation menus.
+: List of all ordered pages on the same level (siblings + current page) to allow for building navigation menus.
+
+`tags`
+: If the current page is the tag index page (see TAGGING POSTS below), this list will contain an object for all tags used throughout the site. If the current page is a post, the list will contain a tag object for each tag specified in the page's settings. Each tag object will contain a `permalink` to the respective tag page, the `name` of the tag, the `slug` of the tag, and a `count` how often this tag is used.
+
+`count`
+: If the current page is a tag page, this variable will contain the number of posts that reference this tag. See TAGGING POSTS below.
+
+# PAGE SETTINGS
+
+Next to specifying page variables, you can modify the behaviour of tack by setting one of the following variables as part of a pages' metadata or YAML frontmatter:
+
+`name`
+: Overrides the name of the page which is usually derived automatically from the directory name.
+
+`tags`
+: If the page is a post, you can specify a list of tags to assign to this page here. If the page is not a post, setting this variable to `true` will make this page the tag index (see TAGGING POSTS below).
+
+`template`
+: Sets the template to use which is usually derived automatically from the metadata filename. By specifying the template using this setting, you do not need to provide a metadata file for pages at all.
+
+`template_tags`
+: For the tag index page (see TAGGING POSTS below), this setting allows specifying a different template to be used for (auto-generated) tag pages. By default, the template of the tag index page would be used instead.
+
+# TAGGING POSTS
+
+Tack includes a functionality to add an arbitrary number of categories, or “tags,” to posts and allows automatically generating an index of all the tags used throughout the whole site.
+
+To use tagging,
+
+1. Add a `tags` page setting to the the posts, ie.
+
+   ```
+   ---
+   tags: ["cars", "diy"]
+   ---
+
+   # How I repaired my Fiat 500 myself
+   ```
+
+   for a post talking about do-it-yourself car repairs.
+
+2. Designate one page to be the tag index, by specifying this page setting: _tags: true_ if the pages' metadata file or YAML frontmatter. Optionally, specify a `template_tags` page setting set the template to be used for the tag pages.
+
+3. Start using the `tags` page variable in your post and tag index templates to list the used tags and link to the individual tag pages. In the tag page templates, use the `posts` variable to link back to the posts using these tags.
+
+   Example, tag index:
+
+   ```
+   {{#tags}}
+   <li>
+     <a href="{{permalink}}">{{name}}</a>: {{count}}
+   </li>
+   {{/tags}}
+   ```
 
 # EXIT STATUS
 
