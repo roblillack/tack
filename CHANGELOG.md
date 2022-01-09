@@ -3,6 +3,7 @@
 ## Upcoming release
 
 - Add tagging support for post pages. #29
+- Add `-d` flag to to generate more verbose (debugging) output while tacking. #31
 - Add support for more template filename extensions: `.mu` and `.stache` in addition to `.mustache` #28
 
 ## v1.2.0 - 2021-07-04

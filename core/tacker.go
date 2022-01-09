@@ -25,15 +25,16 @@ var MetadataExtensions = []string{"yaml", "yml"}
 var MarkupExtensions = []string{"md", "mkd"}
 
 type Tacker struct {
-	BaseDir    string
-	Metadata   map[string]interface{}
-	Pages      []*Page
-	Navigation []*Page
-	Posts      []*Page
-	Tags       map[string][]*Page
-	TagNames   map[string]map[string]int
-	TagIndex   *Page
-	Logger     *log.Logger
+	BaseDir     string
+	Metadata    map[string]interface{}
+	Pages       []*Page
+	Navigation  []*Page
+	Posts       []*Page
+	Tags        map[string][]*Page
+	TagNames    map[string]map[string]int
+	TagIndex    *Page
+	Logger      *log.Logger
+	DebugLogger *log.Logger
 }
 
 func NewTacker(dir string) (*Tacker, error) {
@@ -47,9 +48,12 @@ func NewTacker(dir string) (*Tacker, error) {
 		return nil, fmt.Errorf("does not look like a Tack-able site directory: %s", dir)
 	}
 
+	logger := log.New(os.Stdout, "", 0)
+
 	t := &Tacker{
-		BaseDir: dir,
-		Logger:  log.New(os.Stdout, "", 0),
+		BaseDir:     dir,
+		Logger:      logger,
+		DebugLogger: logger,
 	}
 
 	if err := t.Reload(); err != nil {
@@ -150,6 +154,13 @@ func (t *Tacker) Log(format string, args ...interface{}) {
 	t.Logger.Printf(format+"\n", args...)
 }
 
+func (t *Tacker) Debug(format string, args ...interface{}) {
+	if t.DebugLogger == nil {
+		return
+	}
+	t.DebugLogger.Printf(format+"\n", args...)
+}
+
 func (t *Tacker) Tack() error {
 	t.Log("Tacking up %s (%d pages)", t.BaseDir, len(t.Pages))
 
@@ -162,7 +173,7 @@ func (t *Tacker) Tack() error {
 	}
 
 	for _, page := range t.Pages {
-		t.Log("%s => %s (template: %s)", page.Permalink(), page.Slug, page.Template)
+		t.Debug("%s => %s (template: %s)", page.Permalink(), page.Slug, page.Template)
 		if err := page.Generate(); err != nil {
 			return err
 		}
@@ -184,7 +195,7 @@ func (t *Tacker) Tack() error {
 			return err
 		}
 
-		t.Log("Copying %s", strings.TrimPrefix(i, assetDir))
+		t.Debug("Copying %s", strings.TrimPrefix(i, assetDir))
 		if err := CopyFile(i, dest); err != nil {
 			return err
 		}

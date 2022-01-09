@@ -7,7 +7,7 @@
 tack - a static site generator for the long run
 .SH SYNOPSIS
 .PP
-\f[B]tack\f[R] [\f[I]ACTION\f[R]] [\f[I]SITEDIR\f[R]]
+\f[B]tack\f[R] [-d] [\f[I]ACTION\f[R]] [\f[I]SITEDIR\f[R]]
 .SH DESCRIPTION
 .PP
 Tack reads website sources, like Mustache HTML templates, Markdown
@@ -32,6 +32,12 @@ are re-tacked and reflected in the served site automatically.
 .TP
 \f[B]help\f[R]
 Display a friendly help message.
+.SH OPTIONAL FLAGS
+.TP
+\f[B]-d\f[R]
+Debug mode.
+Enabling this function will output more information while tacking pages
+to ease debugging.
 .SH SITE DIRECTORY
 .PP
 The optional \f[I]SITEDIR\f[R] argument refers to a directory that
