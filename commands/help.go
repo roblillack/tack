@@ -10,7 +10,7 @@ func init() {
 	flag.Usage = func() { _ = Help() }
 }
 
-var Version = "1.3.0-dev"
+var Version = "0.0.0-dev"
 
 func Help(args ...string) error {
 	fmt.Printf(`tack %s
