@@ -146,6 +146,9 @@ Next to specifying page variables, you can modify the behaviour of tack by setti
 `name`
 : Overrides the name of the page which is usually derived automatically from the directory name.
 
+`posts_limit`
+: For ordered or floating pages, this setting can be used to specify the number of `posts` to provide in the rendering context. By default, all posts would be listed.
+
 `tags`
 : If the page is a post, you can specify a list of tags to assign to this page here. If the page is not a post, setting this variable to `true` will make this page the tag index (see TAGGING POSTS below).
 
