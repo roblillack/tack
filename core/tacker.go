@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -28,6 +29,10 @@ type Tacker struct {
 	Metadata   map[string]interface{}
 	Pages      []*Page
 	Navigation []*Page
+	Posts      []*Page
+	Tags       map[string][]*Page
+	TagNames   map[string]map[string]int
+	TagIndex   *Page
 	Logger     *log.Logger
 }
 
@@ -55,6 +60,10 @@ func NewTacker(dir string) (*Tacker, error) {
 }
 
 func (t *Tacker) Reload() error {
+	t.TagIndex = nil
+	t.Tags = nil
+	t.TagNames = nil
+
 	if err := t.loadSiteMetadata(); err != nil {
 		return err
 	}
@@ -63,18 +72,73 @@ func (t *Tacker) Reload() error {
 	}
 
 	navi := []*Page{}
+	posts := []*Page{}
 	for _, i := range t.Pages {
 		if err := i.Init(); err != nil {
 			return err
 		}
-		if i.Parent == nil && !i.Floating {
+		if i.Parent == nil && !i.Floating && !i.Post() {
 			navi = append(navi, i)
+		}
+		if i.Post() {
+			posts = append(posts, i)
 		}
 	}
 	sort.Slice(navi, func(i, j int) bool {
 		return strings.Compare(filepath.Base(navi[i].DiskPath), filepath.Base(navi[j].DiskPath)) == -1
 	})
 	t.Navigation = navi
+
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].Date.After(posts[j].Date)
+	})
+	t.Posts = posts
+
+	for _, i := range t.Pages {
+		if !i.addTagPages {
+			continue
+		}
+		if t.TagIndex != nil {
+			return fmt.Errorf("multiple tag index pages detected: %s <-> %s", t.TagIndex.DiskPath, i.DiskPath)
+		}
+		t.TagIndex = i
+		for slug, taggedPages := range t.Tags {
+			tag := t.Tag(slug)
+
+			template := ""
+			if i.Template != "" {
+				template = i.Template
+			}
+
+			vars := map[string]interface{}{}
+			for k, v := range i.Variables {
+				if k == "name" {
+					continue
+				}
+				if s, ok := v.(string); ok && k == "template_tags" {
+					template = s
+					continue
+				}
+				vars[k] = v
+			}
+			vars["count"] = tag.Count
+
+			page := &Page{
+				inited:    true,
+				Tacker:    t,
+				DiskPath:  "",
+				Slug:      tag.Slug,
+				Name:      tag.Name,
+				Floating:  true,
+				Parent:    i,
+				Posts:     taggedPages,
+				Template:  template,
+				Variables: vars,
+			}
+			t.Pages = append(t.Pages, page)
+			i.Children = append(i.Children, page)
+		}
+	}
 
 	return nil
 }
@@ -98,7 +162,7 @@ func (t *Tacker) Tack() error {
 	}
 
 	for _, page := range t.Pages {
-		t.Log("%s => %s (template: %s)", page.Permalink(), page.Name, page.Template)
+		t.Log("%s => %s (template: %s)", page.Permalink(), page.Slug, page.Template)
 		if err := page.Generate(); err != nil {
 			return err
 		}
@@ -157,6 +221,60 @@ func (t *Tacker) FindTemplate(name string) (*Template, error) {
 	}
 
 	return &Template{tpl}, nil
+}
+
+func (t *Tacker) addTag(name string, page *Page) {
+	slug := TagSlug(name)
+
+	if t.Tags == nil {
+		t.Tags = map[string][]*Page{}
+	}
+	if t.Tags[slug] == nil {
+		t.Tags[slug] = []*Page{}
+	}
+	if t.TagNames == nil {
+		t.TagNames = map[string]map[string]int{}
+	}
+	if t.TagNames[slug] == nil {
+		t.TagNames[slug] = map[string]int{}
+	}
+
+	for _, i := range t.Tags[slug] {
+		if i == page {
+			return
+		}
+	}
+
+	t.Tags[slug] = append(t.Tags[slug], page)
+	t.TagNames[slug][name] = t.TagNames[slug][name] + 1
+}
+
+func (t *Tacker) Tag(name string) Tag {
+	slug := TagSlug(name)
+
+	if t.Tags == nil || t.Tags[slug] == nil {
+		return Tag{Slug: slug, Name: name, Count: 0, Permalink: ""}
+	}
+	link := ""
+	if t.TagIndex != nil {
+		link = path.Join(t.TagIndex.Permalink(), slug)
+	}
+
+	bestName := ""
+	bestCount := 0
+	for name, count := range t.TagNames[slug] {
+		if count > bestCount {
+			bestName = name
+			bestCount = count
+		}
+	}
+
+	return Tag{
+		Name:      bestName,
+		Slug:      slug,
+		Count:     len(t.Tags[slug]),
+		Permalink: link,
+	}
 }
 
 func (t *Tacker) findAllPages() error {
