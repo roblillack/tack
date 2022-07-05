@@ -1,6 +1,6 @@
 % TACK(1)
 % Robert Lillack
-% January 2022
+% July 2022
 
 # NAME
 
@@ -204,7 +204,7 @@ Tack returns a non-zero exit code if tacking the website was not successful due 
 
 # BUGS
 
-To report bugs, please go to create a ticket at https://github.com/roblillack/tack/issues
+To report bugs, please create a ticket at https://github.com/roblillack/tack/issues
 
 # SEE ALSO
 
