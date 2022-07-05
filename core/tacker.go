@@ -35,11 +35,10 @@ type Tacker struct {
 	TagIndex    *Page
 	Logger      *log.Logger
 	DebugLogger *log.Logger
+	Strict      bool
 }
 
 func NewTacker(dir string) (*Tacker, error) {
-	mustache.AllowMissingVariables = true
-
 	if !DirExists(dir) {
 		return nil, fmt.Errorf("directory does not exist: %s", dir)
 	}
@@ -162,7 +161,13 @@ func (t *Tacker) Debug(format string, args ...interface{}) {
 }
 
 func (t *Tacker) Tack() error {
-	t.Log("Tacking up %s (%d pages)", t.BaseDir, len(t.Pages))
+	mustache.AllowMissingVariables = !t.Strict
+	strictModeOn := ""
+	if t.Strict {
+		strictModeOn = " in strict mode"
+	}
+
+	t.Log("Tacking up %s (%d pages)%s", t.BaseDir, len(t.Pages), strictModeOn)
 
 	if _, err := os.Stat(filepath.Join(t.BaseDir, TargetDir)); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
