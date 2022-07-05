@@ -8,6 +8,7 @@ A static site generator for the long run.
 [![Go Report Card](https://goreportcard.com/badge/github.com/roblillack/tack)](https://goreportcard.com/report/github.com/roblillack/tack)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/roblillack/tack?label=latest%20version)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/6239/badge)](https://bestpractices.coreinfrastructure.org/projects/6239)
 
 The project's goal is to create and maintain a sustainable tool that does the
 (arguably pretty easy) job of filling HTML templates with content well enough
