@@ -2,9 +2,17 @@
 
 ## Upcoming release
 
-- Add tagging support for post pages. #29
-- Add `-d` flag to to generate more verbose (debugging) output while tacking. #31
-- Add support for more template filename extensions: `.mu` and `.stache` in addition to `.mustache` #28
+## v1.3.0 - 2022-07-12
+
+- New or improved features:
+  - Add tagging support for post pages. #29
+  - Add strict mode (`-s`). #32 (#35)
+  - Add `-d` flag to to generate more verbose (debugging) output while tacking. #31
+  - Add support for more template filename extensions: `.mu` and `.stache` in addition to `.mustache`. #28
+  - Improve code documentation, README, and contribution guidelines. #33, #34, #38, #39
+- Bugfixes:
+  - Ensure no two pages on the same level can have the same slug. #36 (#37)
+  - Update mustache template library to get rid of vulnerable CI dependencies it had. ca47021
 
 ## v1.2.0 - 2021-07-04
 
