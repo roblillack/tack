@@ -94,10 +94,6 @@ therefor will not be added to tack.
 - Liquid template support
 - More configuration options
 
-#### License
-
-[MIT/X11](https://github.com/roblillack/tack/blob/master/LICENSE).
-
 #### Contributing
 
 To report bugs, or to propose new features, please see [the tack bug tracker](https://github.com/roblillack/tack/issues).
@@ -105,3 +101,7 @@ To report bugs, or to propose new features, please see [the tack bug tracker](ht
 If you'd like to contribute, feel free to create a pull request to implement new features or bug-fixes. Ensure that all code has a proper unit test and is written in idiomatic Go.
 
 Regarding security concerns, please see the separate [Security Policy](./SECURITY.md)
+
+#### License
+
+[MIT/X11](https://github.com/roblillack/tack/blob/master/LICENSE).
