@@ -1,6 +1,6 @@
 % TACK(1)
 % Robert Lillack
-% January 2022
+% July 2022
 
 # NAME
 
@@ -8,7 +8,7 @@ tack - a static site generator for the long run
 
 # SYNOPSIS
 
-**tack** [-d] [*ACTION*] [*SITEDIR*]
+**tack** [-d] [-s] [*ACTION*] [*SITEDIR*]
 
 # DESCRIPTION
 
@@ -31,6 +31,9 @@ The tool is completely self-contained and has no runtime dependencies. This ensu
 
 **-d**
 : Debug mode. Enabling this function will output more information while tacking pages to ease debugging.
+
+**-s**
+: Strict mode. If enabled, tack will quit with an error if an undefined page variable is referenced from any of the templates.
 
 # SITE DIRECTORY
 
@@ -201,7 +204,7 @@ Tack returns a non-zero exit code if tacking the website was not successful due 
 
 # BUGS
 
-To report bugs, please go to create a ticket at https://github.com/roblillack/tack/issues
+To report bugs, please create a ticket at https://github.com/roblillack/tack/issues
 
 # SEE ALSO
 
