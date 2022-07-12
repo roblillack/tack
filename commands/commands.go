@@ -65,5 +65,7 @@ func newTackerWithArgs(args ...string) (*core.Tacker, error) {
 		t.DebugLogger = nil
 	}
 
+	t.Strict = StrictMode
+
 	return t, nil
 }

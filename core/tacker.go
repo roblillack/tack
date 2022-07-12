@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/cbroglie/mustache"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const ContentDir = "content"
@@ -25,6 +25,9 @@ var TemplateExtensions = []string{"mustache", "mu", "stache"}
 var MetadataExtensions = []string{"yaml", "yml"}
 var MarkupExtensions = []string{"md", "mkd"}
 
+// Tacker is the main configuration structure of tack. A Tacker is used by
+// the command-line interface, or programmatically when tacking a website from
+// within third-party code.
 type Tacker struct {
 	BaseDir     string
 	Metadata    map[string]interface{}
@@ -36,12 +39,13 @@ type Tacker struct {
 	TagIndex    *Page
 	Logger      *log.Logger
 	DebugLogger *log.Logger
+	Strict      bool
 	BuildTime   time.Time
 }
 
+// NewTacker creates a new tack configuration structure based on the files
+// found in the directory provided.
 func NewTacker(dir string) (*Tacker, error) {
-	mustache.AllowMissingVariables = true
-
 	if !DirExists(dir) {
 		return nil, fmt.Errorf("directory does not exist: %s", dir)
 	}
@@ -65,6 +69,7 @@ func NewTacker(dir string) (*Tacker, error) {
 	return t, nil
 }
 
+// Reload re-reads all site content and re-builds the page structure.
 func (t *Tacker) Reload() error {
 	t.TagIndex = nil
 	t.Tags = nil
@@ -163,9 +168,18 @@ func (t *Tacker) Debug(format string, args ...interface{}) {
 	t.DebugLogger.Printf(format+"\n", args...)
 }
 
+// Tack is the main “tacking” functionality: All pages are rendered into the
+// output directory by filling the respective templates with the page content.
 func (t *Tacker) Tack() error {
 	t.BuildTime = time.Now()
-	t.Log("Tacking up %s (%d pages)", t.BaseDir, len(t.Pages))
+
+	mustache.AllowMissingVariables = !t.Strict
+	strictModeOn := ""
+	if t.Strict {
+		strictModeOn = " in strict mode"
+	}
+
+	t.Log("Tacking up %s (%d pages)%s", t.BaseDir, len(t.Pages), strictModeOn)
 
 	if _, err := os.Stat(filepath.Join(t.BaseDir, TargetDir)); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err

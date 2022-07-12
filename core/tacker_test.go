@@ -22,11 +22,41 @@ func TestTacker(t *testing.T) {
 		if strings.HasPrefix(filepath.Base(site), ".") {
 			continue
 		}
-		tacker, err := NewTacker(site)
-		assert.NoError(t, err)
+		if filepath.Base(site) != "minimal-blog-with-tags-below-index" {
+			continue
+		}
+		passStrict := map[string]struct{}{
+			"helloworld":                                 {},
+			"helloworld-index-not-in-root":               {},
+			"minimal":                                    {},
+			"minimal-with-nav":                           {},
+			"test-copying-assets":                        {},
+			"test-different-file-extensions":             {},
+			"test-page-variable-overrides-site-metadata": {},
+			"test-page-variable-overrides-template":      {},
+		}
+		for _, strictMode := range []bool{false, true} {
+			tacker, err := NewTacker(site)
+			tacker.Strict = strictMode
+			assert.NoError(t, err)
 
-		assert.NoError(t, tacker.Tack())
-		AssertDirEquals(t, filepath.Join(site, "output.expected"), filepath.Join(site, "output"))
+			err = tacker.Tack()
+			if !strictMode && err != nil {
+				t.Fatalf("Unable to tack site %s: %s", filepath.Base(site), err)
+			}
+
+			_, shouldPass := passStrict[filepath.Base(site)]
+			if strictMode && shouldPass && err != nil {
+				t.Fatalf("Site %s should be tackable in strict mode but is not: %s", filepath.Base(site), err)
+			} else if strictMode && err == nil && !shouldPass {
+				t.Fatalf("Site %s should not be tackable in strict mode but is!", filepath.Base(site))
+			} else if strictMode && err != nil && !shouldPass {
+				t.Logf("Got error tacking %s in strict mode as expected", filepath.Base(site))
+				continue
+			}
+
+			AssertDirEquals(t, filepath.Join(site, "output.expected"), filepath.Join(site, "output"))
+		}
 	}
 }
 
