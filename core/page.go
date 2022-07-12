@@ -20,6 +20,8 @@ import (
 var enumerationRegex = regexp.MustCompile(`^[0-9]+\.\s*`)
 var dateRegex = regexp.MustCompile(`^([0-9]{4}-[0-9]{2}-[0-9]{2})[\.\-]\s*`)
 
+// Page is the main structure holding page content. Some of the fields are
+// only available after the page has been initialized using Init().
 type Page struct {
 	// available directly after construction.
 	Slug     string
@@ -41,6 +43,9 @@ type Page struct {
 	addTagPages   bool
 }
 
+// NewPage creates a new page structure for the specified Tacker
+// based on the given path of the page's directory. No file i/o
+// will take place here just yet.
 func NewPage(tacker *Tacker, realPath string) *Page {
 	fn := filepath.Base(realPath)
 	if realPath == filepath.Join(tacker.BaseDir, ContentDir) {
@@ -70,10 +75,16 @@ func NewPage(tacker *Tacker, realPath string) *Page {
 	return page
 }
 
+// Root determines if the current page is the root page of the website being
+// tacked. The root page might be stored in the top-level content directory
+// or a directory with the slug "index" just below the top level.
 func (p *Page) Root() bool {
-	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) || p.Slug == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
+	return p.DiskPath == filepath.Join(p.Tacker.BaseDir, ContentDir) ||
+		p.Slug == "index" && filepath.Dir(p.DiskPath) == filepath.Join(p.Tacker.BaseDir, ContentDir)
 }
 
+// Permalink return an absolute path to the current page based on its and it's
+// ancestor pages' slugs. The Page must be Init()ed prior to calling this.
 func (p *Page) Permalink() string {
 	if p.Parent == nil {
 		if p.Root() {
@@ -85,6 +96,9 @@ func (p *Page) Permalink() string {
 	return path.Join(p.Parent.Permalink(), p.Slug)
 }
 
+// TargetDir returns the (absolute) path to the directory which will contain
+// this page's HTML and further assets. The Page must be Init()ed prior to
+// calling this.
 func (p *Page) TargetDir() []string {
 	if p.Parent == nil {
 		if p.Root() {
@@ -96,6 +110,9 @@ func (p *Page) TargetDir() []string {
 	return append(p.Parent.TargetDir(), TagSlug(p.Slug))
 }
 
+// Ancestors returns a slice of all of this page's ancestors, starting with
+// the immediate parent page and ending with the root page. The Page must be
+// Init()ed prior to calling this.
 func (p *Page) Ancestors() []*Page {
 	r := []*Page{}
 
@@ -106,6 +123,8 @@ func (p *Page) Ancestors() []*Page {
 	return r
 }
 
+// Siblings returns a slice of all sibling pages of the current one. The Page
+// must be Init()ed prior to calling this.
 func (p *Page) Siblings() []*Page {
 	r := []*Page{}
 
@@ -118,10 +137,15 @@ func (p *Page) Siblings() []*Page {
 	return r
 }
 
+// Post returns `true` if the current page has a post date defined as
+// part of the content directory name.
 func (p *Page) Post() bool {
 	return !p.Date.IsZero()
 }
 
+// Init initializes the page content, by reading the content and metadata from
+// the disk, resolving the used template and creating the necessary structures
+// to reference other pages from this one.
 func (p *Page) Init() error {
 	parent := filepath.Dir(p.DiskPath)
 	siblingsAndMe := []*Page{}
@@ -240,6 +264,9 @@ func (p *Page) addVariables(md map[string]interface{}) error {
 	return nil
 }
 
+// Generate renders the current page given all the content and metadata read
+// from disk and the configured template. If not done already, calling this
+// function will initialize the page using Init().
 func (p *Page) Generate() error {
 	if !p.inited {
 		if err := p.Init(); err != nil {

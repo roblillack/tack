@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/cbroglie/mustache"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const ContentDir = "content"
@@ -24,6 +24,9 @@ var TemplateExtensions = []string{"mustache", "mu", "stache"}
 var MetadataExtensions = []string{"yaml", "yml"}
 var MarkupExtensions = []string{"md", "mkd"}
 
+// Tacker is the main configuration structure of tack. A Tacker is used by
+// the command-line interface, or programmatically when tacking a website from
+// within third-party code.
 type Tacker struct {
 	BaseDir     string
 	Metadata    map[string]interface{}
@@ -37,6 +40,8 @@ type Tacker struct {
 	DebugLogger *log.Logger
 }
 
+// NewTacker creates a new tack configuration structure based on the files
+// found in the directory provided.
 func NewTacker(dir string) (*Tacker, error) {
 	mustache.AllowMissingVariables = true
 
@@ -63,6 +68,7 @@ func NewTacker(dir string) (*Tacker, error) {
 	return t, nil
 }
 
+// Reload re-reads all site content and re-builds the page structure.
 func (t *Tacker) Reload() error {
 	t.TagIndex = nil
 	t.Tags = nil
@@ -161,6 +167,8 @@ func (t *Tacker) Debug(format string, args ...interface{}) {
 	t.DebugLogger.Printf(format+"\n", args...)
 }
 
+// Tack is the main “tacking” functionality: All pages are rendered into the
+// output directory by filling the respective templates with the page content.
 func (t *Tacker) Tack() error {
 	t.Log("Tacking up %s (%d pages)", t.BaseDir, len(t.Pages))
 
