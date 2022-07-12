@@ -170,6 +170,11 @@ func TestDirectoryLayoutErrors(t *testing.T) {
 		// multiple root pages
 		{"x.md", "index/x.md", "a/x.md"},
 		{"0.index/x.md", "1.index/x.md"},
+		{"x.yaml", "index/x.md"},
+		{"x.yaml", "1981-10-08.index/x.md"},
+		// multiple pages with the same slug
+		{"0.posts/x.md", "posts/x.md"},
+		{"2000-01-01.article/x.md", "article/x.yaml"},
 		// same page, different templates
 		{"a.yaml", "b.yaml"},
 	} {
@@ -186,10 +191,17 @@ func TestDirectoryLayoutErrors(t *testing.T) {
 			}
 		}
 		_, err = NewTacker(base)
-		assert.Error(t, err)
+		assert.Error(t, err, "files: %v", i)
 		assert.NoError(t, os.RemoveAll(base))
 	}
 }
+
+func TestNonexistant(t *testing.T) {
+	_, filename, _, _ := runtime.Caller(0)
+	_, err := NewTacker(filepath.Join(filepath.Dir(filename), "invalid-tests", "nonexistant"))
+	assert.Error(t, err)
+}
+
 func AssertDirEquals(t *testing.T, expected string, result string) {
 	expList, err := FindFiles(expected)
 	if err != nil {

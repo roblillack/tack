@@ -310,16 +310,27 @@ func (t *Tacker) findAllPages() error {
 	}
 
 	all := []*Page{}
-	seen := map[string]struct{}{}
+	// directory -> slug -> diskpath
+	seen := map[string]map[string]string{}
 	rootPage := ""
 
 	for _, pageDir := range m {
 		// backfill all ancestors, even if they do not contain sufficient files itself ...
 		for p := pageDir; strings.HasPrefix(p+string(os.PathSeparator), pagesPath); p = filepath.Dir(p) {
-			if _, visited := seen[p]; visited {
-				continue
+			parentDir := filepath.Dir(p)
+			if _, ok := seen[parentDir]; !ok {
+				seen[parentDir] = map[string]string{}
 			}
 			page := NewPage(t, p)
+			if diskPath, haveSameSlug := seen[parentDir][page.Slug]; haveSameSlug {
+				if p == diskPath {
+					// Ok, we saw this page already
+					continue
+				}
+
+				return fmt.Errorf("multiple pages with the same slug on the same level: %s <-> %s", diskPath, page.DiskPath)
+			}
+
 			if page.Root() {
 				if rootPage != "" {
 					if p == pageDir {
@@ -330,8 +341,9 @@ func (t *Tacker) findAllPages() error {
 				}
 				rootPage = p
 			}
+
 			all = append(all, page)
-			seen[p] = struct{}{}
+			seen[filepath.Dir(p)][page.Slug] = page.DiskPath
 		}
 	}
 	t.Pages = all
