@@ -4,9 +4,12 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/cbroglie/mustache"
 )
+
+const RFC822 string = "02 Jan 2006 15:04:05 -0700"
 
 type Template struct {
 	*mustache.Template
@@ -32,6 +35,8 @@ func PageValues(p *Page, ctx *Page) map[string]interface{} {
 	data["root"] = p.Root()
 	if p.Post() {
 		data["date"] = p.Date.Format("2006-01-02")
+		data["date_rfc822"] = p.Date.Format(RFC822)
+		data["date_rfc3339"] = p.Date.Format(time.RFC3339)
 		data["year"] = p.Date.Format("2006")
 		data["month"] = p.Date.Format("January")
 	}
@@ -136,6 +141,9 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 		}
 		ctx["posts"] = PageListValues(limitPageList(posts, page, "posts_limit"), page)
 	}
+
+	ctx["TACK_BUILD_DATE"] = page.Tacker.BuildTime.Local().Format(time.RFC3339)
+	ctx["TACK_BUILD_DATE_RFC822"] = page.Tacker.BuildTime.Local().Format(RFC822)
 
 	return t.Template.FRender(w, ctx)
 }

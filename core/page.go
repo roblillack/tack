@@ -286,17 +286,19 @@ func (p *Page) Generate() error {
 
 	destDir := filepath.Join(append([]string{p.Tacker.BaseDir, TargetDir}, p.TargetDir()...)...)
 
-	p.Tacker.Debug("Generating %s", p.Slug)
-	par := "-"
-	if p.Parent != nil {
-		par = p.Parent.DiskPath
+	if p.DiskPath != "" {
+		p.Tacker.Debug("Generating %s", p.Slug)
+		par := "-"
+		if p.Parent != nil {
+			par = p.Parent.DiskPath
+		}
+		p.Tacker.Debug(" - disk path: %s", p.DiskPath)
+		p.Tacker.Debug(" - parent: %s", par)
+		p.Tacker.Debug(" - permalink: %s", p.Permalink())
+		p.Tacker.Debug(" - destdir: %s", destDir)
+		p.Tacker.Debug(" - ancestors: %s", strings.Join(a, " << "))
+		p.Tacker.Debug(" - siblings: %s", strings.Join(s, ", "))
 	}
-	p.Tacker.Debug(" - disk path: %s", p.DiskPath)
-	p.Tacker.Debug(" - parent: %s", par)
-	p.Tacker.Debug(" - permalink: %s", p.Permalink())
-	p.Tacker.Debug(" - destdir: %s", destDir)
-	p.Tacker.Debug(" - ancestors: %s", strings.Join(a, " << "))
-	p.Tacker.Debug(" - siblings: %s", strings.Join(s, ", "))
 
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return err
@@ -318,12 +320,38 @@ func (p *Page) Generate() error {
 	}
 
 	for i := range p.Assets {
-		p.Tacker.Debug("Copying ...%s", i)
+		p.Tacker.Debug(" - copying %s", i)
 		if err := os.MkdirAll(filepath.Dir(filepath.Join(destDir, i)), 0755); err != nil {
 			return err
 		}
 		if err := CopyFile(filepath.Join(p.DiskPath, i), filepath.Join(destDir, i)); err != nil {
 			return err
+		}
+	}
+
+	if dict, ok := p.Variables["extra_files"].(map[interface{}]interface{}); ok {
+		for k, v := range dict {
+			fn := k.(string)
+			templateName := v.(string)
+			if fn == "" || templateName == "" {
+				continue
+			}
+
+			p.Tacker.Debug(" - rendering %s", fn)
+			tpl, err := p.Tacker.FindTemplate(templateName)
+			if err != nil {
+				return fmt.Errorf("unable to load template '%s' for extra file '%s' when rendering '%s': %s", s, fn, p.Permalink(), err)
+			}
+
+			f, err := os.OpenFile(filepath.Join(destDir, fn), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+
+			if err := tpl.Render(p, f); err != nil {
+				return fmt.Errorf("unable to render template '%s' for extra file '%s' when rendering '%s': %s", s, fn, p.Permalink(), err)
+			}
 		}
 	}
 
