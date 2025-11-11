@@ -33,8 +33,8 @@ Create directory for your site somewhere using a structure like this:
 mysite                     Your website project dir
 ├── content                Contains a subdir per page
 │   ├── about-me           Page will be available at /about-me
-│   │   ├── default.yaml   Page variables, page will use “default” template
-│   │   ├── body.md        One page variable “content” will hold this files'
+│   │   ├── default.yaml   Page variables, page will use "default" template
+│   │   ├── body.md        One page variable "content" will hold this files'
 │   │   │                  content processed as HTML.
 │   │   └── me.jpg         All files not recognized as metadata or markup will
 |   |                      be regarded as assets and be copied to output as is.
@@ -45,28 +45,66 @@ mysite                     Your website project dir
 ├── templates
 │   ├── default.mustache   The default template, used by /about-me and /bikes.
 │   └── serious.mustache   Another template, used by /work
-└── public                 Files in here will not be touched and will be copied
-    ├── style.css          over to output/ as is.
-    ├── logo.png
-    └── js
-        ├── main.js
-        ├── tracker.js
-        └── library.js
+├── public                 Files in here will not be touched and will be copied
+│   ├── style.css          over to output/ as is.
+│   ├── logo.png
+│   └── js
+│       ├── main.js
+│       ├── tracker.js
+│       └── library.js
+└── site.yaml              Optional site-wide metadata and variables
 ```
 
-To create the static site in `output/`, just run
+##### Commands
 
+**Build the site** (default action):
 ```
 tack
 ```
 
-from inside your site directory. Alternatively run:
-
+**Serve with auto-reload** for development:
 ```
 tack serve
 ```
+Opens http://localhost:8080/ and automatically rebuilds when files change.
 
-and open your browser at http://localhost:8080/ while working on the site.
+**List all pages** in your site:
+```
+tack list
+```
+
+**Get help**:
+```
+tack help
+```
+
+##### Command Line Options
+
+- `-d` Enable debug mode (shows detailed build information)
+- `-s` Enable strict mode (fails when undefined variables are referenced)
+
+##### Examples
+
+Build from a different directory:
+```
+tack /path/to/my/site
+```
+
+Development with debugging:
+```
+tack -d serve
+```
+
+Strict mode for catching template errors:
+```
+tack -s
+```
+
+##### Supported File Extensions
+
+- **Templates**: `.mustache`, `.mu`, `.stache`
+- **Metadata**: `.yaml`, `.yml`  
+- **Markup**: `.md`, `.mkd`
 
 Once you're done, copy over the content of `output/` to a hosting service of your choice.
 

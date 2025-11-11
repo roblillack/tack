@@ -236,10 +236,11 @@ nextFile:
 func (p *Page) addVariables(md map[string]interface{}) error {
 	for k, v := range md {
 		if k == "template" {
-			if p.Template != "" {
-				return fmt.Errorf("multiple templates requested! %s vs. %s", p.Template, v)
+			newTemplate := fmt.Sprint(v)
+			if p.Template != "" && p.Template != newTemplate {
+				return fmt.Errorf("%s: multiple templates requested! %s vs. %s", p.DiskPath, p.Template, newTemplate)
 			}
-			p.Template = fmt.Sprint(v)
+			p.Template = newTemplate
 			continue
 		}
 		if k == "tags" {
