@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/cbroglie/mustache"
 	yaml "gopkg.in/yaml.v2"
@@ -39,6 +40,7 @@ type Tacker struct {
 	Logger      *log.Logger
 	DebugLogger *log.Logger
 	Strict      bool
+	BuildTime   time.Time
 }
 
 // NewTacker creates a new tack configuration structure based on the files
@@ -169,6 +171,8 @@ func (t *Tacker) Debug(format string, args ...interface{}) {
 // Tack is the main “tacking” functionality: All pages are rendered into the
 // output directory by filling the respective templates with the page content.
 func (t *Tacker) Tack() error {
+	t.BuildTime = time.Now()
+
 	mustache.AllowMissingVariables = !t.Strict
 	strictModeOn := ""
 	if t.Strict {
@@ -186,7 +190,6 @@ func (t *Tacker) Tack() error {
 	}
 
 	for _, page := range t.Pages {
-		t.Debug("%s => %s (template: %s)", page.Permalink(), page.Slug, page.Template)
 		if err := page.Generate(); err != nil {
 			return err
 		}
