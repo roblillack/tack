@@ -6,29 +6,53 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 jobs:
 
-  build:
+  test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
-        go-version: 1.16
+        go-version: stable
 
     - name: Build
       run: go build -v ./...
 
     - name: Test
-      run: go test -v -coverprofile=coverage.out ./...
+      run: go test -v -race -coverprofile=coverage.out ./...
 
     - name: Prepare Coverage reports
-      run: go get github.com/jandelgado/gcov2lcov && go run github.com/jandelgado/gcov2lcov -infile=coverage.out -outfile=coverage.lcov
+      run: go run github.com/jandelgado/gcov2lcov@v1.1.1 -infile=coverage.out -outfile=coverage.lcov
 
     - name: Coveralls
-      uses: coverallsapp/github-action@master
+      # Not available for pull requests from forks, where GITHUB_TOKEN is
+      # read-only, so don't let it fail the build.
+      continue-on-error: true
+      uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ${{ github.workspace }}/coverage.lcov
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        # Pinned so CI and local runs report the same findings. See .golangci.yml.
+        version: v1.64.8

@@ -1,0 +1,14 @@
+# Keep the pinned `version:` in .github/workflows/go.yml in sync with the
+# golangci-lint release this config is written for (v1.x format).
+run:
+  timeout: 5m
+
+linters:
+  # In addition to the defaults (errcheck, gosimple, govet, ineffassign,
+  # staticcheck, unused):
+  enable:
+    - gofmt
+    - goimports
+    - misspell
+    - unconvert
+    - bodyclose
