@@ -5,3 +5,5 @@
 test-results
 *.userprefs
 /core/tests/*/output
+/coverage.out
+/coverage.lcov

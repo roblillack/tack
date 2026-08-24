@@ -10,5 +10,5 @@ type Tag struct {
 }
 
 func TagSlug(name string) string {
-	return strings.Replace(strings.ToLower(name), " ", "-", -1)
+	return strings.ReplaceAll(strings.ToLower(name), " ", "-")
 }
