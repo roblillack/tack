@@ -68,6 +68,11 @@ tack serve
 ```
 Opens http://localhost:8080/ and automatically rebuilds when files change.
 
+Use `-p` to listen on a different port (`-p 0` picks a free one):
+```
+tack -p 3000 serve
+```
+
 **List all pages** in your site:
 ```
 tack list

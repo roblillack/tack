@@ -15,7 +15,7 @@ var Version = "0.0.0-dev"
 func Help(args ...string) error {
 	fmt.Printf(`tack %s
 
-usage: tack [-d] [<verb>] [parameters]
+usage: tack [<flags>] [<verb>] [parameters]
 
 Available verbs:
 `, Version)

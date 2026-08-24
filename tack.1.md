@@ -8,7 +8,7 @@ tack - a static site generator for the long run
 
 # SYNOPSIS
 
-**tack** [-d] [-s] [*ACTION*] [*SITEDIR*]
+**tack** [-d] [-s] [-p *PORT*] [*ACTION*] [*SITEDIR*]
 
 # DESCRIPTION
 
@@ -22,7 +22,7 @@ The tool is completely self-contained and has no runtime dependencies. This ensu
 : Tack the site together into the folder `output`. This is the default action, if no verb is specified.
 
 **serve**
-: Tack the site together and start a web server on port `8080` which can be used to get a live preview of the tacked website. Changes to the source files (content, templates, assets, ...) are re-tacked and reflected in the served site automatically. The server checks for changes every 3 seconds and rebuilds only when necessary.
+: Tack the site together and start a web server on port `8080` (see the **-p** flag) which can be used to get a live preview of the tacked website. Changes to the source files (content, templates, assets, ...) are re-tacked and reflected in the served site automatically. The server checks for changes every 3 seconds and rebuilds only when necessary.
 
 **list**
 : Display a hierarchical list of all pages in the site, showing their names, disk paths, and permalinks. This is useful for debugging site structure and understanding how tack organizes your content.
@@ -37,6 +37,9 @@ The tool is completely self-contained and has no runtime dependencies. This ensu
 
 **-s**
 : Strict mode. If enabled, tack will quit with an error if an undefined page variable is referenced from any of the templates.
+
+**-p** *PORT*
+: Port the **serve** action listens on. Defaults to `8080`. Specify `0` to let the operating system pick a free port, which will be printed on startup.
 
 # SITE DIRECTORY
 
@@ -229,6 +232,11 @@ tack /path/to/my/site
 **Development server with debugging:**
 ```
 tack -d serve
+```
+
+**Development server on a different port:**
+```
+tack -p 3000 serve
 ```
 
 **Strict mode to catch undefined variables:**

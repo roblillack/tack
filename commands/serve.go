@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"path/filepath"
 	"sync"
@@ -32,6 +33,17 @@ func Serve(args ...string) error {
 	if err != nil {
 		return err
 	}
+
+	if Port < 0 || Port > 65535 {
+		return fmt.Errorf("invalid port number: %d", Port)
+	}
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", Port))
+	if err != nil {
+		return fmt.Errorf("unable to listen on port %d: %s", Port, err)
+	}
+	defer listener.Close()
+
 	if err := tacker.Tack(); err != nil {
 		log.Println(err)
 	}
@@ -42,9 +54,9 @@ func Serve(args ...string) error {
 	var mutex sync.Mutex
 
 	htmlDir := filepath.Join(tacker.BaseDir, core.TargetDir)
-	log.Printf("Serving from %s, listening on port 8080 …\n", htmlDir)
+	log.Printf("Serving from %s, listening on http://localhost:%d/ …\n", htmlDir, listener.Addr().(*net.TCPAddr).Port)
 	server := http.FileServer(http.Dir(htmlDir))
-	return http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		mutex.Lock()
 		defer mutex.Unlock()
