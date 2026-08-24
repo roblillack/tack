@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
@@ -70,9 +71,56 @@ func NewPage(tacker *Tacker, realPath string) *Page {
 		}
 	}
 
-	page.Name = strings.Replace(strings.Title(page.Slug), "-", " ", -1)
+	page.Name = strings.ReplaceAll(titleWords(page.Slug), "-", " ")
 
 	return page
+}
+
+// titleWords upper-cases the first letter of every word, leaving the remainder
+// of each word untouched. It replaces the deprecated strings.Title and keeps its
+// behavior, except that an apostrophe no longer starts a new word: strings.Title
+// turned "don't" into "Don'T".
+func titleWords(s string) string {
+	prev := ' '
+	return strings.Map(func(r rune) rune {
+		if isWordSeparator(prev) {
+			prev = r
+			return unicode.ToTitle(r)
+		}
+		prev = r
+		return r
+	}, s)
+}
+
+// isWordSeparator reports whether r separates two words. Letters and digits are
+// word-internal, and so are apostrophes, so that the "s" in "it's" does not
+// begin a word. Everything else -- whitespace, punctuation and symbols alike --
+// separates.
+//
+// This follows the rule the deprecated strings.Title used, with three fixes: it
+// treated apostrophes as separators ("don't" became "Don'T"); it separated on
+// non-ASCII runes only when they were whitespace, so dashes such as the en dash
+// never started a word ("a\u2013b" became "A\u2013b"); and it treated underscores as
+// word-internal, so "foo_bar" was left alone rather than titled like "foo-bar".
+func isWordSeparator(r rune) bool {
+	if r == '\'' || r == '\u2019' {
+		return false
+	}
+	if r <= 0x7F {
+		switch {
+		case '0' <= r && r <= '9':
+			return false
+		case 'a' <= r && r <= 'z':
+			return false
+		case 'A' <= r && r <= 'Z':
+			return false
+		}
+		return true
+	}
+	if unicode.IsLetter(r) || unicode.IsDigit(r) {
+		return false
+	}
+	return unicode.IsSpace(r) || unicode.IsPunct(r) || unicode.IsSymbol(r)
 }
 
 // Root determines if the current page is the root page of the website being
@@ -199,7 +247,8 @@ nextFile:
 		}
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
 		base := BasenameWithoutExtension(filename)
-		if ext == "yml" || ext == "yaml" {
+		switch ext {
+		case "yml", "yaml":
 			md, err := ProcessMetadata(filename)
 			if err != nil {
 				return fmt.Errorf("unable to process metadata for %s: %w", p.Permalink(), err)
@@ -208,7 +257,7 @@ nextFile:
 			if err := p.addVariables(md); err != nil {
 				return err
 			}
-		} else if ext == "md" || ext == "mkd" {
+		case "md", "mkd":
 			markdown, err := os.ReadFile(filename)
 			if err != nil {
 				return err
@@ -224,7 +273,7 @@ nextFile:
 			}
 
 			p.Variables[base] = buf.String()
-		} else {
+		default:
 			p.Assets[strings.TrimPrefix(filename, p.DiskPath)] = struct{}{}
 		}
 	}

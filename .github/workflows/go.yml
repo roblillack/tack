@@ -15,10 +15,10 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
         go-version: stable
 
@@ -44,15 +44,19 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
         go-version: stable
 
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v9
       with:
-        # Pinned so CI and local runs report the same findings. See .golangci.yml.
-        version: v1.64.8
+        # Deliberately not pinned: the prebuilt binary has to be built with a Go
+        # release at least as new as the toolchain above, or loading the standard
+        # library fails ("export data version N is greater than maximum
+        # supported"). Pinning here while `go-version: stable` moves forward
+        # breaks the job every time Go cuts a release.
+        version: latest
