@@ -22,9 +22,6 @@ func TestTacker(t *testing.T) {
 		if strings.HasPrefix(filepath.Base(site), ".") {
 			continue
 		}
-		if filepath.Base(site) != "minimal-blog-with-tags-below-index" {
-			continue
-		}
 		passStrict := map[string]struct{}{
 			"helloworld":                                 {},
 			"helloworld-index-not-in-root":               {},

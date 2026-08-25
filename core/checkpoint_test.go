@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,4 +41,51 @@ func TestCheckpoints(t *testing.T) {
 		assert.True(t, changes)
 		assert.NoError(t, os.Remove(filepath.Join(site, "temp.yaml")))
 	}
+}
+
+func TestCheckpointEquals(t *testing.T) {
+	now := time.Now()
+	checkpoint := &Checkpoint{files: []fileInfo{
+		{Name: "a", ModTime: now},
+		{Name: "b", ModTime: now},
+	}}
+
+	assert.True(t, checkpoint.Equals(&Checkpoint{files: []fileInfo{
+		{Name: "a", ModTime: now},
+		{Name: "b", ModTime: now},
+	}}))
+
+	// A different number of files ...
+	assert.False(t, checkpoint.Equals(&Checkpoint{files: []fileInfo{
+		{Name: "a", ModTime: now},
+	}}))
+
+	// ... different file names ...
+	assert.False(t, checkpoint.Equals(&Checkpoint{files: []fileInfo{
+		{Name: "a", ModTime: now},
+		{Name: "c", ModTime: now},
+	}}))
+
+	// ... and different modification times all mean “not equal”.
+	assert.False(t, checkpoint.Equals(&Checkpoint{files: []fileInfo{
+		{Name: "a", ModTime: now},
+		{Name: "b", ModTime: now.Add(time.Second)},
+	}}))
+}
+
+func TestCheckpointErrors(t *testing.T) {
+	tacker := &Tacker{BaseDir: filepath.Join(t.TempDir(), "nonexistant")}
+
+	_, err := tacker.Checkpoint()
+	assert.Error(t, err)
+
+	// Without a previous checkpoint there are always changes, even if creating
+	// the new checkpoint failed.
+	changes, _, err := tacker.HasChanges(nil)
+	assert.True(t, changes)
+	assert.Error(t, err)
+
+	changes, _, err = tacker.HasChanges(&Checkpoint{})
+	assert.False(t, changes)
+	assert.Error(t, err)
 }
