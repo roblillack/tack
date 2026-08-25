@@ -137,7 +137,7 @@ func (t *Template) Render(page *Page, w io.Writer) error {
 		ctx["posts"] = PageListValues(limitPageList(posts, page, "posts_limit"), page)
 	}
 
-	return t.Template.FRender(w, ctx)
+	return t.FRender(w, ctx)
 }
 
 func limitPageList(list []*Page, page *Page, name string) []*Page {

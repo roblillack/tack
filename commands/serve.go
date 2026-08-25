@@ -24,7 +24,7 @@ func init() {
 
 func ServeError(w http.ResponseWriter, req *http.Request, err error) {
 	w.WriteHeader(500)
-	w.Write([]byte(fmt.Sprintf("Error: %s\n", err.Error())))
+	fmt.Fprintf(w, "Error: %s\n", err.Error())
 	log.Printf("%s %s://%s%s%s -> ERROR: %s\n", req.Method, "http", req.Host, req.URL.Port(), req.RequestURI, err.Error())
 }
 
